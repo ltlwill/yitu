@@ -1,5 +1,6 @@
 /**
- * 应用管理JS
+ * 应用公共管理JS
+ * author ltlwill
  */
 ;(function($){
 	var App = window.App = {};
