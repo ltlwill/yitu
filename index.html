@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>index</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<link rel="stylesheet" href="css/mui.min.css">
+</head>
+<body>
+	<script src="js/mui.min.js"></script>
+	<script src="js/biz/biz.js"></script>
+	<script src="js/biz/app.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		// mui初始化
+  		mui.init({
+  			swipeBack: false,
+//			preloadPages: [{
+//					url: App.webviews.main.url,
+//					id: App.webviews.main.id
+//				}
+//			],
+  		});
+  		// index管理JS
+  		var IndexMgr = mui.extend(true,window.Biz,{
+  			init: function(){
+  				IndexMgr.initEles();
+  				IndexMgr.bindEvent();
+  			},
+  			initEles: function(){
+  				// 获取系统该设置
+  				App.requestSysSettings(function(){
+  					mui.fire(plus.webview.getWebviewById(App.webviews.login.id),'refresSettingsInfo');
+  				});
+  				this.mainPageLoadedFlag = false;
+  				this.mainPage = null;
+  				// 预加载主页面
+  				this.preloadMain();
+  				if(!this.hasBeenLaunch()){// 如果还没有启动过
+	  				this.openGuideWindow();
+	  			}else if(!App.getToken()){// 如果没有token，说明没有登录过或已经退出登录了，需要重新登录
+	  				this.openLoginWindow();
+	  			}else{
+	  				App.refreshTokenInfo();
+	  				this.openMainWindow();// 打开应用主界面
+	  			}
+  			},
+  			preloadMain: function(){
+  				var me = this;
+  				var mainPage = mui.preload({
+	  				url: App.webviews.main.url,
+	  				id: App.webviews.main.id,
+	  				styles: {
+	  					top:'0px',
+	  					bottom: '0px'
+	  				}
+  				});
+  				this.mainPage = mainPage;
+  				this.mainPage.addEventListener('loaded',function(){
+  					me.mainPageLoadedFlag = true;
+  					//2秒后自动检查更新
+  					setTimeout(function(){
+  						App.checkOrUpdateApp(true);
+  					},4000);
+  				});
+  			},
+  			hasBeenLaunch: function(){
+  				return plus.storage.getItem(App.lauchFlag);
+  			},
+  			oAthuSuccess: function(){
+  				return true;
+  			},
+  			openMainWindow: function(){
+  				var me = this;
+  				// 再检查一次是否登录  
+				if(!App.getToken()){
+					this.openLoginWindow();
+					return false;
+				}
+  				var times = 0;
+  				// 使用定时器：可能执行太快，main页面loaded事件尚未触发就执行自定义事件，对导致失败
+	  			var intervalId = setInterval(function(evt){
+	  				times ++;
+	  				if(me.mainPageLoadedFlag){
+	  					// 关闭定时器
+	  					clearInterval(intervalId);
+	  					plus.navigator.closeSplashscreen(); // 关闭应用启动界面
+						plus.navigator.setFullscreen(false);// 设置为非全屏显示
+						mui.fire(plus.webview.getWebviewById(App.webviews.guide.id),'closeGuide');
+			  			me.mainPage.show('none');           // 打开主页面
+			  			setTimeout(function(){
+			  				mui.fire(me.mainPage,'initPage');
+			  			},10);
+	  				}
+	  				if(times > 10000){
+	  					mui.toast('应用启动失败');
+	  					clearInterval(intervalId);
+	  				}
+	  			},20);
+  			},
+  			openGuideWindow: function(openType){
+  				mui.openWindow({
+  					id: App.webviews.guide.id,
+	  				url: App.webviews.guide.url,
+	  				extras: {'openType': openType},  // 参数
+					show: {
+						aniShow:'none'
+					},
+					waiting:{
+						autoShow:false
+					}
+	  			});
+  			},
+			// 打开登录窗口
+  			openLoginWindow: function(type){
+  				if('loginout' == type){
+  					var loginView = plus.webview.getWebviewById(App.webviews.login.id);
+  					if(loginView){
+  						mui.fire(loginView,'refreshLoginInfo',{});
+  					}
+  				}
+  				mui.openWindow({
+  					id: App.webviews.login.id,
+	  				url: App.webviews.login.url,
+					show: {
+						aniShow:'none'
+					},
+					waiting:{
+						autoShow:false
+					}
+	  			});
+  			},
+  			bindEvent: function(){
+  				var me = this;
+  				// 关闭应用
+		  		window.addEventListener('closeApp',function(){
+		  			mui.back();
+		  		});
+		  		// 打开主页面
+		  		window.addEventListener('openMain',function(evt){
+		  			me.openMainWindow();
+		  		});
+				// 打开登录页面
+		  		window.addEventListener('openLogin',function(evt){
+		  			me.openLoginWindow(evt.detail.type);
+		  		});
+		  		// 打开欢迎页
+		  		window.addEventListener('openGuideWindow',function(evt){
+		  			me.openGuideWindow(evt.detail.openType || '');
+		  		});
+  			}
+  		});
+  		// html+环境初始化完毕
+  		mui.plusReady(function(){
+  			IndexMgr.ready();
+  		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+/*html,body{
+	background-color: #fff;
+}
+.app-bar{
+	height: auto;
+	background-color: #fff;
+}
+.mui-content{
+	background-color: #fff;
+}*/
+.app-header{
+	color: #FFFFFF;
+	background-color: -webkit-linear-gradient(top,#19bcff,#00ccff);
+	background-color: #19bcff;
+}.app-header .mui-action-back{
+	color: #FFFFFF;
+}
+.app-header .mui-title,.app-header .mui-btn,
+.app-header .mui-search .mui-icon-speech,
+.app-header .mui-search .mui-placeholder,
+.app-header .mui-search .mui-icon-search,
+.app-header .mui-search .mui-icon-clear{
+	color: #FFF;
+}
+.none{
+	display: none !important;
+}
+.fl{
+	float: left;
+}
+.fr{
+	float: right;
+}
+.pl{
+	left: 0;
+}
+.pr{
+	right: 0;
+}
+.pd0{
+	padding: 0 !important;
+}
+.pdt0{
+	padding-top: 0px !important;
+}
+.mg0{
+	margin: 0 !important;
+}
+.mg-t-15{
+	margin-top: 15px;
+}
+.text-center{
+	text-align: center;
+}
+.mui-visibility.mui-block .mui-pull.top-none{
+	top: 0px;
+}
+.toolbar{
+	z-index: 10;
+	bottom: 0px;
+}
+.toolbar .mui-bar-tab{
+	width: 80%;
+	margin: 0px auto;
+}
+.toolbar .mui-bar-tab .mui-tab-item:active{
+	background: none;
+}
+.toolbar .mui-bar-tab .mui-tab-item.mui-active{
+	color: #929292;
+}
+.toolbar .mui-bar-tab .mui-tab-item .content{
+	display: inline-block;
+}
+.scale-9{
+	transform: scale(.9);
+}
+.toolbar .back-toolbar{
+    position: absolute;
+    right: 10px;
+    top: 0px;
+    height: 100%;
+    cursor: pointer;
+}
+.text-center{
+	text-align: center;
+}
+.mui-preview-header .mui-preview-indicator{
+	border-radius: 0px;
+}
+.mui-preview-header .mui-preview-title{
+	display: block;
+    position: absolute;
+    top: 0px;
+    text-align: center;
+    color: #FFF;
+    line-height: 25px;
+    font-size: 16px;
+    left: 70px;
+    width: calc(100% - 140px);
+    background-color: rgba(0, 0, 0, 0.4);
+    /*right: 70px;*/
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.mui-preview-header .mui-preview-btns{
+	position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 70px;
+    height: 25px;
+    line-height: 25px;
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #FFF;
+    text-align: center;
+}
+.app-bar{
+	box-shadow:none;
+	background-color: #efeff4;
+	height: 38px;
+}
+.app-bar .mui-icon{
+	font-size: 20px;
+	color: #929292;
+}
+.app-bar .mui-tab-item{
+	height: 30px;
+}
+.app-bar .mui-bar-tab .mui-tab-item .mui-icon{
+	width: auto;
+	height: auto;
+}
+.app-bar .mui-bar-tab .mui-tab-item .mui-icon~.mui-tab-label{
+	font-size: 10px;
+}
+.app-warning{
+	color: #FF0000 !important; 
+}
+.app-user-icon{
+	background-color: #19bcff;
+	border: solid 1px #19bcff;
+	color: #FFFFFF;
+}
+.app-btn-primary{
+	background-color: #19bcff;
+	border: solid 1px #19bcff;
+	color: #FFFFFF;
+}
+.app-btn-primary:active,.app-btn-primary:enabled:active,.mui-btn-primary.mui-active:enabled{
+	background-color: #1e90ff !important;
+	border: solid 1px #1e90ff !important;
+}
+.app-swtich-primary.mui-active{
+    border: 2px solid #19bcff;
+    background-color: #19bcff;
+}
+.mui-bar-tab .mui-tab-item.mui-active{
+	color: #19bcff;
+}
+.app-btn-active:enabled:active{
+	color: #FFE4B5;
+}
+
+.grid-pager{
+	bottom: 0px;
+	z-index: 5;
+	text-align: center;
+}
+.mui-pagination{
+	margin: 5px 0px;
+	text-align: center;
+}
+.mui-pagination > li > a,
+.mui-pagination > li > span{
+	color: #929292;
+}
+.mui-pagination > li:active > a, .mui-pagination > li:active > a:active,
+.mui-pagination > li:active > span,
+.mui-pagination > li:active > span:active{
+	color: inherit;
+    border-color: #ddd;
+    background-color: inherit;
+} 
+/*重写MUI弹出框演示,alert、confirm等的按钮颜色*/
+.mui-popup-button{
+	color: #19bcff !important;
+}

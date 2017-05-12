@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>upload</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/mui.zoom.css" />
+		<link rel="stylesheet" href="../css/mui.imageviewer.custom.css">
+		<link rel="stylesheet" href="../css/biz/app.css" />
+		<link rel="stylesheet" href="../css/app.icon.css">
+		<link rel="stylesheet" href="../css/biz/img.grid.css" />
+		<link rel="stylesheet" href="../css/biz/upload.css"/>
+		
+		<style>
+			.mui-bar{
+				bottom: 0px;
+			}
+			.toolbar1 .mui-bar-tab{
+				width: 100%;
+			}
+			.toolbar1 .mui-bar-tab .mui-tab-item{
+			    display: block;
+			    width: auto;
+			}
+			.toolbar1 .mui-bar-tab .mui-tab-item .mui-icon{
+				top: 10px;
+			}
+			.mui-popover {
+				height: 143px;
+			}
+			span.percentage{
+				color: #19BCFF !important;
+			    width: 55px;
+			    text-align: center;
+			    text-overflow: ellipsis;
+			    overflow: hidden;
+			    padding: 5px;
+			}
+		</style>
+	</head>
+	<body>
+		<!--<nav class="mui-bar app-bar toolbar toolbar1">-->
+		<nav class="mui-bar app-bar grid-pager">
+			<!--<div class="mui-bar-tab">
+	    		<a id="btn_sel_images" class="mui-tab-item fl" href="#">
+					<span class="mui-icon mui-icon-plus"></span>
+		    	</a>
+		    	<a id="btn_upload_images" class="mui-tab-item fr" href="#">
+					<span class="mui-icon mui-icon-upload"></span>
+		    	</a>
+			</div>-->
+			<ul class="mui-pagination mui-pagination-sm">
+				<li class="mui-previous">
+					<a id="btn_sel_images" href="#">
+						添加
+					</a>
+				</li>
+				<li class="mui-previous">
+					<span id="percentage_msg" class="percentage none">100%</span>
+				</li>
+				<li class="mui-previous"> 
+					<a id="btn_upload_images" href="#">
+						上传
+					</a>
+				</li>
+			</ul>	
+		</nav>
+		<!-- 工具栏 -->
+		<nav id="grid_toolbar" class="mui-bar app-bar toolbar none">
+			<div class="mui-bar-tab">
+			    <a id="btn_del_selected" class="mui-tab-item" href="#">
+			    	<div class="content">
+			    		<span class="mui-icon mui-icon-trash"></span>
+			        	<span class="mui-tab-label">删除</span>
+			    	</div>	
+			    </a>
+			    <a id="btn_select_all" class="mui-tab-item" href="#">
+			    	<div class="content">
+			    		<span class="mui-icon app-icon icon-check5 scale-9"></span>
+			        	<span class="mui-tab-label">全选</span>
+			    	</div>
+			    </a>
+			</div>
+			<div class="back-toolbar">
+				<span class="mui-icon mui-icon-undo"></span>
+			</div>
+		</nav>
+		<div class="mui-content"></div>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.zoom.js"></script>
+	<script src="../js/mui.previewimage.custom.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/biz.js"></script>
+	<script src="../js/biz/list.biz.js"></script>
+	<script src="../js/biz/img.grid.js"></script>
+	<script type="text/javascript">
+		var subId = App.webviews.uploadList.id,
+			subUrl = 'upload_list.html';
+		mui.init({
+			gestureConfig:{
+				longtap:true
+			},
+			subpages: [{
+				id: subId,
+				url: subUrl,
+				styles: {
+					top: '0px',
+//					bottom: '45px'
+					bottom: '38px'	
+				}
+			}]
+		});
+		// 上传管理对象
+		var UploadMgr = mui.extend(true,window.ListBiz,{
+			options: {
+				subId: subId,
+				subUrl: subUrl,
+				maxSelImageNum: 20 // 最多可选图片数量
+			},
+			init: function(){
+				UploadMgr.initEles();
+				UploadMgr.bindEvent();
+			},
+			initEles: function(){
+				this.selImagesBtn = document.getElementById('btn_sel_images');        // 图片选择按钮
+				this.uploadImagesBtn = document.getElementById('btn_upload_images');  // 图片上传按钮 
+				this.percentageMsgEle = document.getElementById('percentage_msg');    // 上传百分比显示区域
+				this.uploadQueue = [];                             // 上传队列 ,数据格式[{path:''（图片路径）,name:''（图片名称）,key:''（唯一标识）,mime:''},...] 
+				this.uploadTask = this.createUploadTask();         // 创建上传任务
+				this.imageKey = 0;                                 // 图片的唯一标识key
+				this.nameKeyMapping = {};                          // name与key的映射
+			},
+			bindEvent: function(){
+				var me = this;
+				// 图片选择按钮事件
+				this.selImagesBtn.addEventListener('tap',function(){
+					if(me.uploadQueue && me.uploadQueue.length > me.options.maxSelImageNum){
+						mui.toast('每次最多可上传' + me.options.maxSelImageNum + '张图片');
+						return false;
+					}
+					var btnArray = [{title:"拍照",color:'#19bcff'},{title:"相册选择",color:'#19bcff'}];
+					plus.nativeUI.actionSheet( {
+						title:"选择照片",
+						cancel:"取消",
+						buttons:btnArray
+					}, function(e){
+						switch (e.index){
+							case 0:  // 取消
+								break;
+							case 1:  // 拍照
+								me.addImagesFromCamera();
+								break;
+							case 2:  // 相册选择
+								me.addImagesFromPhotos();
+								break;
+						}
+					} );
+				});
+				// 图片上传按钮事件
+				this.uploadImagesBtn.addEventListener('tap',function(){
+					if(!me.uploadQueue || !me.uploadQueue.length){
+						mui.toast('没有可上传的图片');
+						return false;
+					}
+					me.startUpload();
+				});
+				// 从队列删除
+				window.addEventListener('removeFromQueue',function(evt){
+					var imageStr = evt.detail.images || '[]';
+					me.removeImagesFromQueue(JSON.parse(imageStr));
+				});
+				// 更新上传进度事件
+				window.addEventListener('updateUploadPercentageMessage',function(evt){
+					me.updateUploadPercentageMessage(evt.detail.message,evt.detail.type);
+				});
+			},
+			// 拍照添加图片
+			addImagesFromCamera: function(){
+				var me = this,cmr = plus.camera.getCamera(); 
+				cmr.captureImage( function ( p ) {
+					plus.io.resolveLocalFileSystemURL( p, function ( entry ) {
+						me.addAndConvertImages(entry.fullPath);
+					}, function ( e ) {
+//						console.log( "读取拍照文件失败：" + e.message );
+					} );
+				}, function ( e ) {
+//					console.log( "拍照失败，错误编码：" + e.code + '，错误信息：' + e.message );
+				}, {filename:"_doc/camera/",index:1} );
+			},
+			// 从相册选择图片
+			addImagesFromPhotos: function(){
+				var options = {
+					multiple: true,  // 开启多选模式
+					filter: 'image', // 仅选择图片
+					maximum: this.options.maxSelImageNum,   // 最多选择的图片数量
+					system: false,
+					onmaxed: function(evt){                 // 超过最多选择图片数量事件
+						mui.toast('最多可选' + this.options.maxSelImageNum + '张图片');
+					},
+				};
+				// 开始选择图片
+				plus.gallery.pick(this.onSelectImagesFromPhotosSuccess,this.onSelectImagesFromPhotosError,options);
+			},
+			// 从相册选择图片成功
+			onSelectImagesFromPhotosSuccess: function(evt){
+				UploadMgr.addAndConvertImages(evt.files);
+			},
+			addAndConvertImages: function(paths){
+				var images = this.ceateImagesObject(paths || []);
+				if(!images || !images.length){
+					return false;
+				}
+				// 添加到图片表格
+				mui.fire(this.getSubWebview(),'addImages',{'images': JSON.stringify(images)});
+				// 添加到上传队列
+				this.addImagesToQueue(images);
+			},
+			// 从相册选择图片失败
+			onSelectImagesFromPhotosError: function(evt){
+//				mui.toast('从相册选取图片失败');
+			},
+			// 创建上传任务
+			createUploadTask: function(){
+				var task = plus.uploader.createUpload(App.createUrl('/upload/uploadImages'),{'method':'POST'},this.onUploadCompleted);
+				// 设置公共参数
+				this.setCommonUploadParams(task);
+				// 添加文件上传完成事件
+				task.addEventListener('statechanged',this.onImageFileUploadStateChanged,false);
+				return task;
+			}, 
+			// 当上传完成时
+			onUploadCompleted: function(upload,status){
+				var me = UploadMgr;
+				if(status != '200'){
+					plus.nativeUI.alert('上传失败');
+				}
+				// 移除所有的进度条
+				mui.fire(me.getSubWebview(),'removeAllProgressbar',{});
+				var resText = upload.responseText || '',
+					resJson = JSON.parse(resText || '{}');
+				// 设置上传成功的标识
+				if(resJson.success && resJson.success.length){
+					mui.fire(me.getSubWebview(),'updateImageStatus',
+						{'keys':JSON.stringify(me.getKeysFromNameKeyMapping(resJson.success)),'method':'addCompleteFlag'});
+				}
+				// 设置上传失败的标识 
+				if(resJson.fail && resJson.fail.length){
+					mui.fire(me.getSubWebview(),'updateImageStatus',
+						{'keys':JSON.stringify(me.getKeysFromNameKeyMapping(resJson.fail)),'method':'addFailFlag'});
+				}
+				// 重置任务
+				me.resetUploadTask(resJson);
+			},
+			getKeysFromNameKeyMapping: function(names){
+				names = names || [];
+				var keys = [];
+				for(var i=0;i<names.length;i++){
+					keys.push(this.nameKeyMapping[names[i]]);
+				}
+				return keys;
+			},
+			// 重新设置上传任务
+			resetUploadTask: function(resJson){
+				this.uploadTask = this.createUploadTask();
+				// 从队列中移除成功的数据
+				var success = resJson.success || [];
+				if(success && success.length){
+					for(var i=0;i<success.length;i++){
+						for(var j=0;j<this.uploadQueue.length;j++){
+							if(success[i] == this.uploadQueue[j].name){
+								// 移除key与name的映射
+								delete this.nameKeyMapping[this.uploadQueue[j].name];
+								// 从上传队列中移除
+								this.uploadQueue.splice(j,1);
+								break;
+							}
+						}
+					}
+				}
+			},
+			// 当图片上传状态变化时 
+			onImageFileUploadStateChanged: function(upload,status){
+				var me = UploadMgr;
+				if (upload.state == '4' && status == '200') { // 上传完成
+					me.updateUploadPercentageMessage('100%');
+				}else if(upload.state == '3'){                // 上传中 
+					var uploadSize = parseFloat(upload.uploadedSize),
+						totalSize = parseFloat(upload.totalSize),
+						percentage = Number(((uploadSize/totalSize) * 100)).toFixed(0) + '%';
+					// 与主webview通信，更新上传进度信息（注：由于次数过多，会导致Maximum call stack size exceeded的错误）
+//					mui.fire(plus.webview.getWebviewById(App.webviews.main.id),
+//						'updateUploadProgressMessage',{'message':percentage});
+//					me.getMainWebview().evalJS("window.updateUploadProgressMessage('" + percentage + "')");
+					// 更新上传进度百分比信息 
+					me.updateUploadPercentageMessage(percentage);
+				}else{
+					me.updateUploadPercentageMessage('0%');
+				}
+			},
+			// 开始上传
+			startUpload: function(params){
+				if(!this.uploadTask){
+					return false;
+				}
+				// 添加文本参数
+				this.addParamsToUploadTask(params,this.uploadQueue);
+				// 设置图片的进度条
+				this.setImageProgressbar();
+				// 开始上传
+				this.uploadTask.start();
+			},
+			// 显示进度条
+			setImageProgressbar: function(){
+				if(!this.uploadQueue && !this.uploadQueue.length){
+					return false;
+				}
+				var keys = [];
+				for(var i=0;i<this.uploadQueue.length;i++){
+					keys.push(this.uploadQueue[i].key);
+				}
+				mui.fire(this.getSubWebview(),'updateImageStatus',{'keys':JSON.stringify(keys),'method':'addProgressbar'});
+			},
+			// 设置公共上传参数
+			setCommonUploadParams: function(task){
+				var params = this.getCommonUploadParams() || {};
+				for(var name in params){
+					task.addData(name,params[name]);
+				}
+			},
+			// 公共上传参数
+			getCommonUploadParams: function(){
+				var user = App.getUserInfo() || {},
+					params = mui.extend({
+					'userId': user.userId || '',
+					'userName': user.userName || '',
+				},App.getCommonParams());
+				return params;
+			},
+			// 添加上传参数（文本参数）
+			addParamsToUploadTask: function(params,images){
+				params = params || {};
+				images = images || [];
+				// 文本参数
+				for(var name in params){
+					this.uploadTask.addData(name,params[name] || '');
+				}
+				// 图片参数
+				this.addImagesFileToUploadTask(images);
+			},
+			// 添加图片问文件参数到上传任务
+			addImagesFileToUploadTask: function(images){
+				if(typeof images == 'object' && images.constructor != Array){
+					images = [images];
+				}
+				// 图片参数
+				for(var i in images){
+					if(!this.uploadTask.addFile(images[i].path || '',images[i])){
+						mui.toast('添加图片失败，图片名称：' + (images[i].name || ''));
+					}
+				}
+			},
+			// 创建图片对象
+			ceateImagesObject: function(paths){
+				if(typeof paths == 'string'){
+					paths = [paths];
+				}
+				var images = [],name = '',fails = [],obj = {};
+				for(var i in paths){
+//					images.push({'key': this.imageKey++,'path': paths[i],'name': this.getImageNameByPath(paths[i])});
+					name = this.getImageNameByPath(paths[i]) || '';
+//					obj = {'path': paths[i],'name': name,'key': name.replace(/\./gi,'_')};
+					obj = {'path': paths[i],'name': name,'key': this.imageKey++};
+					// 如果队列中已存在此name的文件，则不添加
+					if(this.isContainsNameInQueue(obj.name)){
+						fails.push(obj);
+					}else{
+						images.push(obj);
+						// 缓存name与key的关系
+						this.nameKeyMapping[obj.name] = obj.key;
+					}
+				}
+				if(fails && fails.length){
+					var namesStr = '';
+					for(var i=0;i<fails.length;i++){
+						namesStr += fails[i].name + '\n';
+					}
+					namesStr = namesStr.substring(0,namesStr.lastIndexOf('\n'));
+					plus.nativeUI.alert(namesStr,null,'添加失败信息，上传列表中已存在')
+				}
+				return images;
+			},
+			isContainsNameInQueue: function(name){
+				if(!this.uploadQueue && !this.uploadQueue.length){
+					return false;
+				}
+				for(var i = 0;i<this.uploadQueue.length;i++){
+					if(this.uploadQueue[i].name == name){
+						return true;
+					}
+				}
+				return false;
+			},
+			getImageNameByPath: function(path){
+				return path.substring(path.lastIndexOf('/') + 1);
+			},
+			// 向上传队列里面添加图片
+			addImagesToQueue: function(images){
+				images = images || [];
+				this.uploadQueue = this.uploadQueue.concat(images);
+			},
+			// 从上传队列里面移除
+			removeImagesFromQueue: function(images){
+				if(typeof images == 'object' && images.constructor != Array){
+					images = [images];
+				}
+				images = images || [];
+				for(var i=0;i<images.length;i++){
+					for(var j=0;j<this.uploadQueue.length;j++){
+						if(images[i].key == this.uploadQueue[j].key){
+							this.uploadQueue.splice(j,1);
+							break;
+						}
+					}
+				}
+			},
+			refreshUpload: function(){
+				this.uploadQueue = []; // 重置上传队列
+				this.imageKey = 0;     // 重置上传唯一索引  
+				this.nameKeyMapping = {}; // 重置文件名与唯一索引的键值对
+				this.uploadTask = this.createUploadTask(); // 重置上传器
+				this.updateUploadPercentageMessage('','hide');  // 重置上传百分比信息
+				mui.fire(this.getSubWebview(),'refreshUploadGrid',{}); // 重新上传图片表格数据
+			},
+			// 更新上传百分比进度信息
+			updateUploadPercentageMessage: function(msg,type){
+				if(type == 'hide'){
+					this.percentageMsgEle ? this.percentageMsgEle.classList.add('none') : null;
+				}else{
+					this.percentageMsgEle ? this.percentageMsgEle.classList.remove('none') : null;
+				}
+				this.percentageMsgEle ? this.percentageMsgEle.innerHTML = msg || '' : null;
+			},
+		});
+		window.addEventListener('refreshUpload',function(evt){
+			if(UploadMgr && UploadMgr.refreshUpload){
+				UploadMgr.refreshUpload();
+			}
+		});
+		// h5+环境初始化完成
+		mui.plusReady(function(){
+			UploadMgr.ready();
+		});
+	</script>
+</html>

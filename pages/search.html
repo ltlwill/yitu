@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Search</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/mui.zoom.css" />
+		<link rel="stylesheet" href="../css/mui.imageviewer.custom.css">
+		<link rel="stylesheet" href="../css/biz/app.css" />
+		<link rel="stylesheet" href="../css/app.icon.css">
+		<link rel="stylesheet" href="../css/biz/img.grid.css" />
+		<link rel="stylesheet" href="../css/biz/search.css"/>
+	</head>
+	<style>
+	</style>
+	<body>
+		<nav class="mui-bar app-bar grid-pager">
+			<ul class="mui-pagination mui-pagination-sm">
+				<li class="mui-previous">
+					<a href="#" event-type="first">
+						首页
+					</a>
+				</li>
+				<li class="mui-previous">
+					<a href="#" event-type="prev">
+						上一页
+					</a>
+				</li>
+				<li class="pagination-info">
+					<span>1/0</span>
+				</li>
+				<li class="mui-previous">
+					<a href="#" event-type="next">
+						下一页
+					</a>
+				</li>
+				<li class="mui-next">
+					<a href="#" event-type="last">
+						尾页
+					</a>
+				</li>
+			</ul>
+		</nav>
+		<!-- 工具栏 -->
+		<nav id="grid_toolbar" class="mui-bar app-bar toolbar none">
+			<div class="mui-bar-tab">
+				<a id="btn_download_selected" class="mui-tab-item" href="#">
+					<div class="content">
+						<span class="mui-icon mui-icon-download"></span>
+		        		<span class="mui-tab-label">下载</span>
+					</div>	
+		    	</a>
+			    <a id="btn_del_selected" class="mui-tab-item" href="#">
+			    	<div class="content">
+			    		<span class="mui-icon mui-icon-trash"></span>
+			        	<span class="mui-tab-label">删除</span>
+			    	</div>	
+			    </a>
+			    <a id="btn_select_all" class="mui-tab-item" href="#">
+			    	<div class="content">
+			    		<span class="mui-icon app-icon icon-check5 scale-9"></span>
+			        	<span class="mui-tab-label">全选</span>
+			    	</div>
+			    </a>
+			</div>
+			<div class="back-toolbar">
+				<span class="mui-icon mui-icon-undo"></span>
+			</div>
+		</nav>
+		
+		<div class="mui-content"></div>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.zoom.js"></script>
+	<script src="../js/mui.previewimage.custom.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/biz.js"></script>
+	<script src="../js/biz/list.biz.js"></script>
+	<script src="../js/biz/img.grid.js"></script>
+	<script>
+		var subId = App.webviews.searchList.id,
+			subUrl = 'search_list.html';
+		mui.init({
+			gestureConfig:{
+				longtap:true
+			},
+			subpages: [{
+				id: subId,
+				url: subUrl,
+				styles: {
+					top: '0px',
+					/*bottom: '45px'*/
+					bottom: '38px'
+				}
+			}]
+		});
+		// DOM初始化完成
+		mui.ready(function(){
+			refreshSearchBtnsStatus();
+		});
+		// 
+		function refreshSearchBtnsStatus(){
+			var user = App.getUserInfo() || {};
+			// 普通人员需要隐藏删除按钮
+			if(user && (String(user.userType) == '2' || String(user.userType) == '')){
+				document.getElementById('btn_del_selected').classList.add('none');
+			}
+		}
+		// 查询管理对象
+		var SearchMgr = mui.extend(true,window.ListBiz,{
+			options: {
+				subId: subId,
+				subUrl: subUrl
+			},
+			init: function(){
+				SearchMgr.initEles();
+				SearchMgr.bindEvent();
+			},
+			initEles: function(){
+				this.pagination = mui('.mui-pagination');
+				this.paginationInfo = mui('.mui-pagination .pagination-info span');
+			},
+			bindEvent: function(){
+				var me = this;
+				// webview加载完成事件
+				me.bindWebviewLoadedEvent();
+				// 分页按钮事件
+				me.pagination.on('tap','a',function(){
+					me.doPagination(this);
+				});
+				window.addEventListener('addPullBottomStyle',function(evt){
+					var target = mui('.mui-visibility .mui-pull')[0];
+					if(!target){
+						return;
+					}
+					if(evt.detail.type == 'add'){
+						target.classList.add('top-none');
+					}else{
+						target.classList.remove('top-none');
+					}
+				});
+				window.addEventListener('updatePaginationInfo',function(evt){
+					var param = evt.detail;
+					me.paginationInfo[0].innerHTML = param.currPage + '/' + param.pages;
+				});
+				window.addEventListener('getSearchKeyWord',function(){
+					var keyWord = mui.fire(plus.webview.getWebviewById(App.webviews.main.id),'getSearchKeyWord');
+					return keyWord;
+				});
+			},
+			// 分页操作
+			doPagination: function(ele){
+				var type = ele.getAttribute('event-type') || '',
+					disabled = ele.parentNode.classList.contains('mui-disabled');
+				if(disabled){
+					return false;
+				}
+				mui.fire(this.getSubWebview(),'doPagination',{'type':type});
+			},
+			bindWebviewLoadedEvent: function(){
+				var me = this;
+				var _id = setInterval(function(){
+					if(me.getSubWebview()){
+						clearInterval(_id);
+						me.getSubWebview().addEventListener('loaded',function(){
+//							mui.fire(me.getSubWebview(),'refresh');
+						});
+					}
+				},10);
+			}
+		});
+		window.addEventListener('refreshSearchBtnsStatus',function(evt){
+			refreshSearchBtnsStatus();
+		});
+		// h5+环境初始化完成
+		mui.plusReady(function(){
+			SearchMgr.ready();
+		});
+	</script>
+</html>

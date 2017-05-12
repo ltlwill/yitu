@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>setting</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/biz/app.css">
+		<link rel="stylesheet" href="../css/biz/setting.css">
+	</head>
+	<body>
+		<div class="mui-content">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell mui-media">
+					<a class="user-wrapper mui-navigate-right">
+						<div class="user-head app-user-icon">
+							<span class="mui-icon mui-icon-contact user-img"></span>
+						</div>
+						<div class="mui-media-body user-body">
+							<!--<span>测试用户</span>	
+							<p class='mui-ellipsis'>账号:test</p>-->
+							<span></span>	
+							<p class='mui-ellipsis'></p>
+						</div>
+					</a>
+				</li>
+			</ul>
+			<h5 class="mui-content-padded">查询列表设置</h5>
+			<ul class="mui-table-view mg0">
+				<li class="mui-table-view-cell">
+					<span>显示图片名称</span>
+					<div id="btn_switch_img_name" class="mui-switch mui-switch-blue app-swtich-primary mui-active">
+						<div class="mui-switch-handle"></div>
+					</div>
+				</li>
+				<li class="mui-table-view-cell">
+					<span>每页显示图片数</span>
+					<div id="inp_set_img_num" class="mui-numbox" data-numbox-min='1' data-numbox-max='50'>
+						<button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
+						<input class="mui-input-numbox" type="number" value="" />
+						<button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
+					</div>
+				</li>
+			</ul>
+			<ul class="mui-table-view">
+		        <li class="mui-table-view-cell">
+		            <a id="btn_feedback" class="mui-navigate-right">
+                     	问题反馈
+		            </a>
+		        </li>
+		        <li class="mui-table-view-cell">
+		            <a id="btn_go_guide" class="mui-navigate-right">
+                     	欢迎页面
+		            </a>
+		        </li>
+		        <li id="btn_update"class="mui-table-view-cell">
+		            <a class="mui-navigate-right">
+                     	<span>检查更新</span>
+                     	<span id="app_version" class="app-version"></span>
+		            </a>
+		        </li>
+		    </ul>
+			<ul class="mui-table-view">
+				<li id="btn_loginout" class="mui-table-view-cell text-center">
+					<a class="app-warning">退出登录</a>
+				</li>
+			</ul>
+		</div>
+		<!--页面主内容区结束-->
+	</body>
+	<script type="text/javascript" src="../js/mui.min.js"></script>
+	<script type="text/javascript" src="../js/biz/biz.js"></script>
+	<script type="text/javascript" src="../js/biz/app.js" ></script>
+	<script>
+		// MUI初始化 
+		mui.init({
+			swipeBack:true //启用右滑关闭功能
+		});
+		// DOM准备就绪时
+		mui.ready(function (){
+	    });
+		// 设置管理对象
+		var SettingMgr = mui.extend(true,window.Biz,{
+			init: function(){
+				SettingMgr.initEles();
+				SettingMgr.initElesData();
+				SettingMgr.bindEvent(); 
+			},
+			initEles: function(){
+				this.userWrapper = mui('.user-wrapper');
+				this.switchBtn = mui('#btn_switch_img_name');
+				this.setNumInp = mui('#inp_set_img_num');
+				this.feedbackBtn = mui('#btn_feedback');
+				this.updateBtn = mui('#btn_update');
+				this.guideBtn = mui('#btn_go_guide');
+				this.loginoutBtn = mui('#btn_loginout');
+				this.appVersionEle = mui('#app_version');
+			},
+			initElesData: function(){
+				var settings = App.getImageGridSettigns();
+				// 是否显示图片名称开关
+				if(settings.showImgName || typeof settings.showImgName == 'undefined'){
+					this.switchBtn[0].classList.add('mui-active');
+				}else{
+					this.switchBtn[0].classList.remove('mui-active');
+				}
+				// 每页显示数量
+				this.setNumInp[0].querySelector('input').value = settings.imgNum || this.options.defaultGridNum;
+				// 刷新app版本信息
+				this.appVersionEle[0].innerHTML = plus.runtime.version ? 'v' + plus.runtime.version : '';
+			},
+			bindEvent: function(){
+				var me = this;
+				// 打开用户详细页面
+				this.userWrapper[0].addEventListener('tap',function(){
+					me.openUserDetailPage();
+				});
+				// 图片列表是否显示图片名称切换按钮事件
+				this.switchBtn[0].addEventListener('toggle',function(evt){
+					me.configSettings('showImgName',evt.detail.isActive);
+				});
+				// 图片列表每页显示图片数输入框事件
+				this.setNumInp[0].addEventListener('change',function(){
+					me.configSettings('imgNum',this.querySelector('input').value);
+				});
+				// 问题反馈按钮事件
+				this.feedbackBtn[0].addEventListener('tap',function(){
+					me.openFeedbackPage();
+				});
+				// 检查更新按钮事件
+				this.updateBtn[0].addEventListener('tap',function(){
+					App.checkOrUpdateApp(false);
+				});
+				this.guideBtn[0].addEventListener('tap',function(){
+					me.openGuideWindow();
+				});
+				// 退出登录按钮事件
+				this.loginoutBtn[0].addEventListener('tap',function(){
+					me.doLoginout();
+				});
+			},
+			configSettings: function(key,value){
+				var settings = App.getImageGridSettigns() || {};
+				settings[key] = value;
+				App.setImageGridSettings(settings);
+				// 触发刷新操作
+				mui.fire(plus.webview.getWebviewById(App.webviews.searchList.id),'refreshGrid');
+			},
+			// 打开用户详细页
+			openUserDetailPage: function(){
+				mui.openWindow({
+					id: App.webviews.userDetail.id,
+					url: App.webviews.userDetail.url,
+					style: {
+						scrollIndicator: 'none'  // 不显示滚动条
+					},
+					show:{ 
+						aniShow:'slide-in-right' // 从右侧横向滑动效果
+					},
+					waiting:{
+						autoShow:false 
+					} 
+				});
+			},
+			// 打开问题反馈页
+			openFeedbackPage: function(){
+				mui.openWindow({
+					id: App.webviews.feedback.id,
+					url: App.webviews.feedback.url,
+					style: {
+						scrollIndicator: 'none'  // 不显示滚动条
+					},
+					show:{ 
+						aniShow:'slide-in-right' // 从右侧横向滑动效果
+					},
+					waiting:{
+						autoShow:false 
+					} 
+				});
+			},
+			// 退出登录
+			doLoginout: function(){
+				var btnArray = ['确定','取消'];
+				mui.confirm('确定要退出吗？','', btnArray, function(e) {
+					if (e.index == 0) { // 确定退出登录
+						mui.doPost(App.createUrl('/userLoginOut'),{},function(result){
+							// 移除存储的token信息
+							App.removeToken();
+							App.requestSysSettings(function(){
+								mui.fire(plus.webview.getWebviewById(App.webviews.login.id),'refresSettingsInfo');
+							});
+							// 打开登录页面
+							mui.fire(plus.webview.getLaunchWebview(),'openLogin',{'type':'loginout'});
+						},function(){
+							mui.toast('退出登录失败');
+						});
+					}
+				});
+			},
+			openGuideWindow: function(){
+				mui.fire(plus.webview.getLaunchWebview(),'openGuideWindow',{'openType':'manual'});
+			}
+		});
+		// 刷新用户信息
+		window.addEventListener('refreshUserInfo',function(evt){
+			refreshUserInfo();
+		});
+		function refreshUserInfo(){
+			// 初始化用户信息
+			var user = App.getUserInfo() || {};
+			var userWrapper = mui('.user-wrapper')[0];
+			userWrapper.querySelector('.user-body span').innerHTML = user.nickName ||'&nbsp;';
+			userWrapper.querySelector('.user-body p').innerHTML = '账号:' + (user.userName || '');
+		};
+		// DOM初始化完成
+		mui.ready(function(){
+			refreshUserInfo();
+		});
+		// html5+初始化完成
+		mui.plusReady(function(){
+			SettingMgr.ready();
+		});
+	</script>
+</html>

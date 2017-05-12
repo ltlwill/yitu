@@ -1,0 +1,36 @@
+.user-img{
+    font-size: 38px;
+}
+.user-wrapper{
+	display: table;
+}
+.user-wrapper .user-head{
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+.user-wrapper .user-body{
+	/*width: calc(100% - 50px);
+	float: right;*/
+	display: table-cell;
+	padding-left: 5px;
+}
+.mui-table-view,.mui-input-group{
+	margin-top: 15px;
+}
+.mui-table-view:last-child{
+	margin-bottom: 15px;
+}
+.mui-content-padded{
+	margin: 10px 15px;
+}
+.mui-table-view-cell .mui-numbox{
+	position: absolute;
+    top: 3px;
+    right: 15px;
+}
+.mui-table-view-cell .app-version{
+	float: right;
+    padding-right: 20px;
+    color: #aaa;
+}

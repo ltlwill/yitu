@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/mui.zoom.css" />
+		<link rel="stylesheet" href="../css/mui.imageviewer.custom.css">
+		<link rel="stylesheet" href="../css/biz/app.css">
+		<link rel="stylesheet" href="../css/app.icon.css">
+		<link rel="stylesheet" href="../css/biz/img.grid.css" />
+		<style>
+				.mui-preview-header .mui-preview-btns{
+				    color: #fff;
+				    z-index: 999;
+				    cursor: pointer;
+				}
+		</style>
+	</head>
+	<body>
+		<button id="button1" class="mui-btn mui-btn-blue">选中数据</button>
+		<button id="button2" class="mui-btn mui-btn-blue">所有数据</button>
+		<button id="add1" class="mui-btn mui-btn-blue">添加一条</button>
+		<button id="add2" class="mui-btn mui-btn-blue">添加多条</button>
+		<button id="refresh" class="mui-btn mui-btn-blue">刷新</button>
+		<button id="addProgressbar" class="mui-btn mui-btn-blue">添加进度条</button>
+		<button id="removeProgressbar" class="mui-btn mui-btn-blue">取消进度条</button>
+		<button id="addComplete" class="mui-btn mui-btn-blue">标记完成</button>
+		<button id="removeComplete" class="mui-btn mui-btn-blue">取消完成标记</button>
+		<button id="addFail" class="mui-btn mui-btn-blue">标记失败</button>
+		<button id="removeFail" class="mui-btn mui-btn-blue">取消失败标记</button>
+		<button id="muiAlert" class="mui-btn mui-btn-blue">MUI Alert</button>
+		<button id="muiConfirm" class="mui-btn mui-btn-blue">MUI Confirm</button>
+		<!--下拉刷新容器-->
+		<div id="refreshContainer" class="mui-content mui-scroll-wrapper" style="top: 50px;">
+		  	<div class="mui-scroll">
+		  		<!--数据列表-->
+			    <ul id="my_img_table" class="ui-img-table">
+	        	</ul>
+		  	</div>
+		</div>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.zoom.js"></script>
+	<script src="../js/mui.previewimage.custom.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/img.grid.js"></script>
+	<script>
+		mui.init({
+			gestureConfig:{
+				doubletap:true
+			},
+			pullRefresh: {
+				container: '#refreshContainer',
+				down: {
+					callback: pulldownRefresh
+				}
+			}
+		});
+		function pulldownRefresh(){
+			// 定时器模拟加载数据耗时
+			setTimeout(function(){
+				mui('#refreshContainer').pullRefresh().endPulldownToRefresh();
+			},2000);
+		}
+		
+		;(function(){
+			var options = {
+				data : getTestData(1),
+				showTitle: true,
+				imgProps: {'data-preview-src':'url','id':'id','name':'name'},
+				onLoaded: function(rows){
+//					createPreview(); // 初始化图片预览
+				},
+			};
+			function createPreview(){
+				var options = {
+					'btns': [{'iconCls':'mui-icon mui-icon-download',handler:function(img){
+						console.log('img:');
+						console.log('下载图片;' + 'url:' + img.getAttribute('src') + ';name:' + img.getAttribute('data-name'));
+					}}]
+				};
+				mui.previewImage(options); 
+			}
+			var mTable = mui('#my_img_table');
+			var tableObj = mTable.imgGrid(options);  
+			
+			function getTestData(length){
+				var rows = [];
+				for(var i=1;i<=length;i++){
+					rows.push({'id':('777.jpg').replace(/\./gi,'_')+i,'url':'../images/777.jpg','name':'1000123'+i+'.jpg'});
+				}
+				return rows;
+			}
+			document.getElementById('button1').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows');
+				console.log('选中数据：' + JSON.stringify(rows));
+			},false);
+			document.getElementById('button2').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getRows');
+				console.log('所有数据：' + JSON.stringify(rows));
+			},false);
+			document.getElementById('add1').addEventListener('tap',function(){
+				mui('#my_img_table').imgGrid('addItem',{'id':new Date().getTime(),'url':'../images/666.jpg','name':'666.jpg'});
+			},false);
+			document.getElementById('add2').addEventListener('tap',function(){
+				var rows = [];
+				for(var i=0;i<2;i++){
+					rows.push({'id':new Date().getTime() + i,'url':'../images/555.jpg','name':'555.jpg'});
+				}
+				mui('#my_img_table').imgGrid('addItems',rows);
+			},false);
+			document.getElementById('refresh').addEventListener('tap',function(){
+				mui('#my_img_table').imgGrid('loadData',getTestData(1));
+			},false);
+			document.getElementById('addProgressbar').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('addProgressbar',rows[i].id);
+				}
+			},false);
+			document.getElementById('removeProgressbar').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('removeProgressbar',rows[i].id);
+				}
+			},false);
+			document.getElementById('addComplete').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('addCompleteFlag',rows[i].id);
+				}
+			},false);
+			document.getElementById('removeComplete').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('removeCompleteFlag',rows[i].id);
+				}
+			},false);
+			document.getElementById('addFail').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('addFailFlag',rows[i].id);
+				}
+			},false);
+			document.getElementById('removeFail').addEventListener('tap',function(){
+				var rows = mTable.imgGrid('getSelectedRows') || [];
+				for(var i=0;i<rows.length;i++){
+					mTable.imgGrid('removeFailFlag',rows[i].id);
+				}
+			},false);
+			document.getElementById('muiAlert').addEventListener('tap',function(){
+				mui.alert("测试MUI Alert");
+			});
+			document.getElementById('muiConfirm').addEventListener('tap',function(){
+				var btnArray = ['确定','取消'];
+				mui.confirm('确定要退出吗？','', btnArray, function(e) {
+					if (e.index == 0) { // 确定退出登录
+						mui.toast('确定退出');
+					}
+				});
+			});
+//			document.getElementById('openPopover').addEventListener('tap',function(){
+//				mui('#contact_popover').popover('toggle');
+//			});
+			
+//			var url = 'http://image.hengzhiyi.cn/ws/search/getPagedImagesBySku';
+//			mui.ajax(url,{
+//				crossDomain: true,    
+//				success: function(data){
+//					console.log("成功:" + JSON.stringify(data));
+//					data = data || {};
+//				},
+//				error: function(xhr,type,errorThrown){
+//					var ss = 11;
+//				},
+//				beforeSend: function(xhr,options){
+//					var sss = 11;
+//				},
+//			});
+		})();
+		
+//		mui.plusReady(function(){
+//		});
+	</script>
+</html>

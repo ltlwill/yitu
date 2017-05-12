@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" class="feedback">
+	<head>
+		<meta charset="utf-8">
+		<title>Login</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" type="text/css" href="../css/mui.min.css">
+		<link rel="stylesheet" type="text/css" href="../css/biz/app.css">
+		<link rel="stylesheet" type="text/css" href="../css/app.icon.css">
+		<link rel="stylesheet" type="text/css" href="../css/biz/feedback.css" />
+		
+		<style type="text/css">
+			.contact-popver{ 
+				height: 136px;
+			}
+			#submit{
+				outline: 0px none;
+				background: transparent;
+				border: none;
+			}
+		</style>
+	</head>
+	<body>
+		<header id="header" class="mui-bar mui-bar-nav app-header">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<button id="submit" class="mui-btn mui-btn-blue mui-pull-right app-btn-active">发送</button>
+			<h1 class="mui-title">问题反馈</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-content-padded">
+				<div class="mui-inline">问题和意见</div>
+				<a class="mui-pull-right mui-inline" href="#question_popover">
+					快捷输入
+					<span class="mui-icon mui-icon-arrowdown"></span>
+				</a>
+				<!--快捷输入具体内容-->
+				<div id="question_popover" class="mui-popover">
+					<div class="mui-popover-arrow"></div>
+					<div class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<ul class="mui-table-view">
+								<!--仅流应用环境下显示-->
+								<li class="mui-table-view-cell stream">
+									<a href="#">桌面快捷方式创建失败</a>
+								</li>
+								<li class="mui-table-view-cell"><a href="#">界面显示错乱</a></li>
+								<li class="mui-table-view-cell"><a href="#">启动缓慢，卡出翔了</a></li>
+								<li class="mui-table-view-cell"><a href="#">偶发性崩溃</a></li>
+								<li class="mui-table-view-cell"><a href="#">UI无法直视，丑哭了</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row mui-input-row">
+				<textarea id='question' name="question" class="mui-input-clear question" placeholder="请详细描述你的问题和意见..."></textarea>
+			</div>
+			<!--<p>微信/QQ/邮箱</p>-->
+			<div class="mui-content-padded">
+				<div id="caontact_type_txt" class="mui-inline" text="联系方式">联系方式</div>
+				<a class="mui-pull-right mui-inline" href="#contact_popover">
+					选择
+					<span class="mui-icon mui-icon-arrowdown"></span>
+				</a>
+				<!--联系方式类型-->
+				<div id="contact_popover" class="mui-popover contact-popver">
+					<div class="mui-popover-arrow"></div>
+					<div class="mui-scroll-wrapper">
+						<div class="mui-scroll">
+							<ul class="mui-table-view">
+								<!--仅流应用环境下显示-->
+								<li class="mui-table-view-cell stream">
+									<a href="#">桌面快捷方式创建失败</a>
+								</li>
+								<li class="mui-table-view-cell"><a href="#" data="1">微信</a></li>
+								<li class="mui-table-view-cell"><a href="#" data="2">QQ</a></li>
+								<li class="mui-table-view-cell"><a href="#" data="3">邮箱</a></li> 
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<input id="contact_type" name="contactType" type="hidden"/>
+			<div class="mui-input-row">
+				<input id='contact' name="contact" type="text" class="mui-input-clear contact" placeholder="(选填,方便我们联系你 )" />
+			</div>
+			<div class="mui-content-padded">
+				<div class="mui-inline">应用评分</div>
+				<div id="score" class="icons mui-inline" style="margin-left: 6px;">
+					<i data-index="1" class="mui-icon mui-icon-star"></i>
+					<i data-index="2" class="mui-icon mui-icon-star"></i>
+					<i data-index="3" class="mui-icon mui-icon-star"></i>
+					<i data-index="4" class="mui-icon mui-icon-star"></i>
+					<i data-index="5" class="mui-icon mui-icon-star"></i>
+				</div>
+			</div><br />
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/immersed.js"></script>
+		<script src="../js/biz/app.js"></script>
+		<script src="../js/biz/biz.js"></script>
+		
+		<script type="text/javascript">
+			;(function(){
+				// MUI初始化
+				mui.init({
+					swipeBack: true  // 启用右滑关闭功能
+				});
+			})();
+			// 问题反馈管理对象
+			var FeedBackMgr = mui.extend(true,window.Biz,{
+				init: function(){
+	  				FeedBackMgr.initEles();
+	  				FeedBackMgr.bindEvent();
+  				},
+  				initEles: function(){
+  					this.eles = {
+  						'question': mui('#question'),
+  						'contact': mui('#contact'),
+  						'contactType': mui('#contact_type'),
+  						'contactTypeTxt': mui('#caontact_type_txt'),
+  						'submitBtn': mui('#submit'), 
+  						'qPopover': mui('#question_popover'),
+  						'cPopover': mui('#contact_popover'),
+  						'score': mui('#score')
+  					};
+  					this.resetFeedback();
+  				},
+  				bindEvent: function(){
+  					var me = this;
+  					// 反馈内容选择
+  					me.eles.qPopover.on('tap','li',function(){
+  						me.eles.question[0].value = me.eles.question[0].value ? 
+  							me.eles.question[0].value + ';' + this.children[0].innerHTML : this.children[0].innerHTML;
+						me.eles.qPopover.popover('toggle');
+  					});
+  					// 联系方式选择
+  					me.eles.cPopover.on('tap','li',function(){
+  						me.eles.contactType[0].value = this.children[0].getAttribute('data');
+  						me.eles.contactTypeTxt[0].innerHTML = me.eles.contactTypeTxt[0].getAttribute('text') 
+  							+ '(' + this.children[0].innerHTML + ')';
+						me.eles.cPopover.popover('toggle');
+  					});
+  					// 提交按钮
+  					me.eles.submitBtn[0].addEventListener('tap',function(){
+  						me.doSubmitFeedback();
+  					});
+  					// 评分点击事件
+  					me.eles.score.on('tap','i',function(){
+  						// 失去焦点
+  						me.eles.question[0].blur();
+  						me.eles.contact[0].blur(); 
+  						var index = parseInt(this.getAttribute("data-index")),
+					  		parent = this.parentNode,
+					  		children = parent.children,
+					  		len = children.length;
+					  	if(this.classList.contains("mui-icon-star")){
+					  		for(var i=0;i<index;i++){
+				  				children[i].classList.remove('mui-icon-star');
+				  				children[i].classList.add('mui-icon-star-filled');
+					  		}
+					  	}else{
+					  		for (var i = index; i < len; i++) {
+					  			children[i].classList.add('mui-icon-star')
+					  			children[i].classList.remove('mui-icon-star-filled')
+					  		}
+					  	}
+					  	me.score = index;
+  					});
+  				},
+  				// 提交问题反馈
+  				doSubmitFeedback: function(){
+  					if(!this.validateFeedback()){
+  						return false;
+  					}
+  					var me = this;
+  					mui.doAjax(App.createUrl('/feedback'),{
+  						data: this.getFeedbackParams(),
+  						type: 'POST',
+  						success: function(data){
+  							me.onFeedbackSuccess(data);
+  						},
+  						error: function(e){
+  							mui.toast('反馈失败');
+  						}
+  					});
+  				},
+  				// 获取反馈的请求参数
+  				getFeedbackParams: function(){
+  					return mui.extend(this.getDefaultParams(),{
+  						'question': String(this.eles.question[0].value).trim(),
+  						'contactType': this.eles.contactType[0].value,
+  						'contact': String(this.eles.contact[0].value).trim(),
+  						'score': this.score
+  					});
+  				},
+  				// 反馈成功
+  				onFeedbackSuccess: function(data){
+  					var me = this;
+  					mui.alert("感谢反馈，点击确定关闭","反馈成功","确定",function () {
+						me.resetFeedback(); // 重置
+						setTimeout(function(){
+							mui.back();           // 返回
+						},300);
+					});
+  				},
+  				// 重置
+  				resetFeedback: function(){
+  					this.eles.question[0].value = '';   // 重置问题
+  					this.eles.contact[0].value = '';    // 重置联系方式内容
+  					this.eles.contactType[0].value = '';// 重置联系方式
+  					this.eles.contactTypeTxt[0].value = this.eles.contactTypeTxt[0].getAttribute('text');// 重置联系方式标题
+  					this.score = ''; // 重置评分
+  				},
+  				// 验证
+  				validateFeedback: function(){
+  					// 验证问题
+  					if(!String(this.eles.question[0].value).trim()){
+  						mui.toast('请输入反馈内容');
+  						return false;
+  					}
+  					// 如果填写了联系方式的内容，而没有选择联系方式
+  					if(!String(this.eles.contactType[0].value).trim()){
+  						mui.toast('请选择联系方式');
+  						return false;
+  					}
+  					// 填写了联系方式内容且选择了联系方式
+//					if(String(this.eles.contact[0].value).trim() && this.eles.contactType[0].value){
+					if(this.eles.contactType[0].value){
+  						var type = this.eles.contactType[0].value,
+  							con = String(this.eles.contact[0].value).trim(),
+  							flag = true,
+  							msg = '';
+  						switch(type){
+  							case '2': // QQ
+  								flag = /^[1-9][0-9]{4,11}$/.test(con);
+  								msg = '请输入正确的QQ号';
+  								break;
+  							case '3': // 邮箱
+  								flag = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/.test(con);
+  								msg = '请输入正确的邮箱';
+  								break;
+  							default:
+  								flag = con != '' && con != null && con.trim() != null;
+  								msg = '请输入联系方式';
+  								break;
+  						}
+  						if(!flag){
+  							mui.toast(msg);
+  							return false;
+  						}
+  					}
+  					return true;
+  				},
+  				// 获取默认的参数 
+  				getDefaultParams: function(){
+  					var params = {
+  						platform: mui.os.android ? 'android' : 'ios',
+  						osVersion: mui.os.version,
+  						userId: App.getUserInfo().userId || '',
+  						userName: App.getUserInfo().userName || ''
+  					};
+  					if(window.plus){
+  						mui.extend(params,{
+		  					appId: plus.runtime.appid, 
+							imei: plus.device.imei, //设备标识
+							model: plus.device.model, //设备型号
+							appVersion: plus.runtime.version,
+							plusVersion: plus.runtime.innerVersion, //基座版本号
+							net: '' + plus.networkinfo.getCurrentType()
+						}); 
+  					}
+  					return params;
+  				},
+			});
+			
+			// DOM初始化完成
+//			mui.ready(function(){
+//				FeedBackMgr.init();
+//			});
+			// html+环境准备完成
+			mui.plusReady(function(){
+				FeedBackMgr.init();
+			});
+		</script>
+	</body>
+</html>

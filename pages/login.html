@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Login</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/biz/app.css">
+		<link rel="stylesheet" href="../css/app.icon.css">
+		
+		<style>
+			.mui-input-group .mui-input-row:first-child{
+				margin-top: 25px;
+			}
+			.mui-content-padded{
+				margin-top: 25px;
+			}
+			.mui-content-padded .mui-btn-block{
+				padding: 10px 0px;
+			}
+			.user-head-wrapper{
+				margin-top: 25px;
+			}
+			.user-head-wrapper .user-head{
+			    width: 80px;
+			    height: 80px;
+			    margin: 0px auto;
+			    text-align: center;
+			    vertical-align: middle;
+			    line-height: 80px;
+			}
+			.user-head-wrapper .user-head .user-img{
+			    width: 100%;
+			    height: 100%;
+			    color: #fff;
+			    font-size: 80px;
+			}
+			.sys-settings{
+				padding: 0px 10px;
+    			text-align: center;
+			}
+			.sys-settings p{
+			    margin-bottom: 0px;
+			}
+	</style>
+	</head>
+	<body>
+		<header id="header" class="mui-bar mui-bar-nav app-header">
+		    <h1 class="mui-title">用户登录</h1>
+		</header>
+		<div class="mui-content">
+			<div class="user-head-wrapper">
+				<div class="user-head app-user-icon">
+					<span class="mui-icon mui-icon-contact user-img"></span>
+				</div>
+			</div>
+		    <form id='login_form' class="mui-input-group">
+				<div class="mui-input-row">
+					<label>账号</label>
+					<input id='userName' name="userName" type="text" class="mui-input-clear mui-input" placeholder="请输入账号">
+				</div>
+				<div class="mui-input-row">
+					<label>密码</label>
+					<input id='password' name="password" type="password" class="mui-input-password " placeholder="请输入密码">
+				</div>
+			</form>
+			<div class="mui-content-padded">
+				<button id='login' class="mui-btn mui-btn-block app-btn-primary">登录</button>
+			</div>
+			<div id="sys_settings" class="sys-settings none">
+				<p>允许用户登录时间</p>
+				<div class="detail">
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/immersed.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/biz.js"></script>
+	<script>
+  		;(function(mui,doc){
+  			// MUI初始化
+			mui.init({
+				swipeBack: false  // 不启用右滑关闭功能
+			});
+			var _back = mui.back();
+	  		// 重写返回事件
+	  		mui.back = function(){
+	  			var view = plus.webview.getLaunchWebview();
+	  			mui.fire(view,'closeApp');
+	  		};
+  		})(mui,document);
+		
+		// 登录管理对象
+		var LoginMgr = mui.extend(true,window.Biz,{
+			init: function(){
+				plus.navigator.setFullscreen(false);// 设置为非全屏显示
+  				LoginMgr.initEles();
+  				LoginMgr.bindEvent();
+  			},
+  			initEles: function(){
+  				this.userEle = document.getElementById('userName');
+  				this.pwdEle = document.getElementById('password');
+  				this.loginBtn = document.getElementById('login');
+  				this.settingsEle = document.getElementById('sys_settings');
+  				this.refreshLoginInfo();
+  			},
+  			bindEvent: function(){
+  				var me = this;
+  				this.loginBtn.addEventListener('tap',function(evt){
+  					me.doUserLogin();
+  				});
+  				window.addEventListener('refreshLoginInfo',function(evt){
+  					me.refreshLoginInfo();
+  				});
+  				window.addEventListener('refresSettingsInfo',function(evt){
+  					me.refresSettingsInfo();
+  				});
+  			},
+  			refreshLoginInfo: function(){
+  				// 初始化用户名称
+  				this.userEle.value = App.getUserInfo().userName || '';
+  				// 初始化密码（清空）
+  				this.pwdEle.value = '';
+  				// 刷新系统设置信息
+  				this.refresSettingsInfo();
+  			},
+  			refresSettingsInfo: function(){
+  				var settings = App.getSysSettings() || [];
+  				if(!settings || !settings.length){
+  					return false;
+  				}
+  				var p = null,flag = false,pEle = this.settingsEle.querySelector('.detail');
+  				pEle.innerHTML = '';
+  				for(var i in settings){
+  					if(!settings[i].startTime || !settings[i].endTime){
+  						continue;
+  					}
+  					flag = true;
+  					p = document.createElement('p');
+  					p.innerHTML = (settings[i].startTime || '') + ' 至 ' + (settings[i].endTime || '');
+  					pEle.appendChild(p);
+  				}
+  				flag ? this.settingsEle.classList.remove('none') : this.settingsEle.classList.add('none');
+  			},
+  			// 用户登录
+  			doUserLogin: function(){
+				var me = this
+					url = '/userLogin',
+					params = {'userName':this.userEle.value,'password':this.pwdEle.value};
+				if(!params.userName || params.userName.trim() == '')
+				{
+					mui.toast('请输入用户名');
+					return false;
+				}
+				if(!params.password || params.password.trim() == '')
+				{
+					mui.toast('请输入密码');
+					return false;
+				}
+				mui.doAjax(App.createUrl(url),{
+					type: 'POST',
+					data: params,
+					success: function(data,status,xhr){
+						data = data || {};
+						// 用户名或密码错误
+						if(data.resultCode == App.Constants.USER_OR_PWD_ERROR){
+							mui.toast('用户名或密码错误');
+							return false;
+						}else if(data.resultCode == App.Constants.NON_WORKIING_TIME){ // 非工作时间
+							mui.toast('非工作时间，不允许登录');
+							return false;
+						}else if(data.resultCode == App.Constants.REQUEST_SUCCESS_RESULT_CODE){
+							// 保存返回的token和用户信息到本地
+							App.setToken(data.token);
+							App.setUserInfo(data.user);
+							// 登录成功后，页面跳转到主页面
+							mui.fire(plus.webview.getLaunchWebview(),'openMain');
+						}else{
+							mui.toast('登录失败');
+						}
+					},
+					error: function(xhr,type,errorThrown){
+						mui.toast('登录失败，未知错误');
+					},
+					beforeSend: function(xhr,options){
+						plus.nativeUI.showWaiting('正在登录...');
+					},
+					complete: function(xhr,status){
+						plus.nativeUI.closeWaiting();
+					}
+				});
+  			},
+		});
+		
+		// H5+环境初始化后
+		mui.plusReady(function(){
+			LoginMgr.init();
+		});
+	</script>
+</html>

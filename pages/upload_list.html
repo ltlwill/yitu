@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Upload List</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/mui.zoom.css" />
+		<link rel="stylesheet" href="../css/mui.imageviewer.custom.css">
+		<link rel="stylesheet" href="../css/biz/app.css" />
+		<link rel="stylesheet" href="../css/app.icon.css">
+		<link rel="stylesheet" href="../css/biz/img.grid.css" />
+		<link rel="stylesheet" href="../css/biz/upload.css"/>
+	</head>
+	<body>
+		<!--内容-->
+		<div class="mui-content">
+		    <!--数据列表-->
+		    <ul id="my_img_table" class="ui-img-table">
+        	</ul>
+		</div>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.zoom.js"></script>
+	<script src="../js/mui.previewimage.custom.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/biz.js"></script>
+	<script src="../js/biz/list.biz.js"></script>
+	<script src="../js/biz/img.grid.js"></script>
+	<script>
+		mui.init({
+			gestureConfig:{
+				longtap:true
+			}
+		});
+		// 图片上传管理
+		var UploadListMgr = mui.extend(true,window.ListBiz,{
+			options: {
+				pId: App.webviews.upload.id,
+				pUrl: App.webviews.upload.url
+			},
+			init: function(){
+				UploadListMgr.initEles();
+				UploadListMgr.bindEvent();
+			},
+			initEles: function(){
+				this.initGridTable();
+			},
+			bindEvent: function(){
+				var me = this;
+				window.addEventListener('addImages',function(evt){
+					var imagesStr = evt.detail.images || '[]';
+					me.addImagesToGrid(JSON.parse(imagesStr));
+				});
+				window.addEventListener('updateImageStatus',function(evt){
+					var keys = JSON.parse(evt.detail.keys || '[]'),
+						method = evt.detail.method;
+						me.updateImageStatus(keys,method);
+				});
+				window.addEventListener('removeAllProgressbar',function(evt){
+					me.removeAllProgressbar();
+				});
+			},
+			initGridTable: function(){
+				var me = this,
+				options = {
+					urlField: 'path',
+					idField: 'key',
+					imgProps: {'data-preview-src':'path','id':'key','name':'name'},
+					showEmptyMsg: false,
+					onLoaded: function(rows){
+						// 暂时废掉上传时的预览功能，上传列表的预览有问题，下个版本再实现
+//						mui.previewImage({'onOpen': me.onPreviewOpen,'onClose': me.onPreviewClose});
+					},
+					onOpenSelectMode:function(){
+						me.onOpenSelectMode();
+					},
+					onDataChange: function(type,rows){
+						var allRows = me.table.imgGrid('getRows') || [];
+						me.updateNavbarStatus((!allRows || !allRows.length) ? 'hide' : 'show',allRows.length );
+					},
+				};
+				this.table.imgGrid(options);
+			},
+			addImagesToGrid: function(images){
+				this.table.imgGrid('addItems',images || []);
+			},
+			setBackToolbarStatus: function(type){
+				mui.fire(this.getPWebview(),'setBackToolbarStatus',{'type':type});
+			},
+			onOpenSelectMode: function(){
+				this.setBackToolbarStatus('show');
+			},
+			delSelected: function(){
+				var selRows = this.table.imgGrid('getSelectedRows');
+				if(!selRows || !selRows.length){
+					mui.toast('请选择要删除的图片');
+					return false;
+				}
+				// 从表格里移除元素
+				this.table.imgGrid('removeSelected');
+				// 从上传队列里面移除
+				mui.fire(this.getPWebview(),'removeFromQueue',{'images': JSON.stringify(selRows)});
+				// 如果全部移除了，则修改上传进度信息
+				var rows = this.table.imgGrid('getRows') || [];
+				if(!rows || !rows.length){
+					// 更新上传百分比信息
+					mui.fire(this.getPWebview(),'updateUploadPercentageMessage',{'type':'hide','message':''});
+				}
+			},
+			// 跟新图片的状态（上传中、成功、失败）
+			updateImageStatus: function(keys,methodName){
+				if(!keys || !keys.length){
+					return false;
+				}
+				for(var i=0;i<keys.length;i++){
+					this.table.imgGrid(methodName,keys[i]);
+				}
+			},
+			createPreview: function(){
+				mui.previewImage();
+			},
+			refreshUploadGrid: function(){
+				this.table ? this.table.imgGrid('loadData',[]) : null;
+			},
+			removeAllProgressbar: function(){
+				this.table.imgGrid('removeAllProgressbar');
+			},
+			// 更新导航栏中的清空按钮的状态（显示或隐藏）
+			updateNavbarStatus: function(type,length){
+				// 更新主页面中的导航栏信息
+				mui.fire(this.getMainWebview(),'updateNavbarStatus',{'type':type,'imageCount': length})
+			},
+		});
+		window.addEventListener('refreshUploadGrid',function(evt){
+			if(UploadListMgr && UploadListMgr.refreshUploadGrid){ 
+				UploadListMgr.refreshUploadGrid();
+			}
+		}); 
+		// h5+环境初始化完成
+		mui.plusReady(function(){
+			UploadListMgr.ready();
+		});
+	</script>
+</html>

@@ -1,0 +1,104 @@
+.ui-img-table{
+	padding: 0px;
+	margin: 0px;
+}
+.ui-img-table .ui-img-row{
+	padding: 3px 0px 0px 3px;
+	overflow: hidden;
+}
+.ui-img-table .ui-img-row .ui-img-cell{
+	width: -webkit-calc(calc((100% - 12px)/4));
+	width: calc((100% - 12px)/4);
+	display: block;
+	padding: 0px;
+	margin: 0px 3px 3px 0px;
+	float: left;
+	height: 0;
+	padding-bottom: calc((100% - 12px)/4);
+	position: relative;
+}
+.ui-img-table .ui-img-row .ui-img-cell img{
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+.ui-img-table .ui-img-row .ui-img-cell .title{
+    display: block;
+    text-align: center;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: xx-small;
+    line-height: 2em;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 15px;
+    min-height: 15px;
+    margin: 0;
+    padding: 0px;
+    -webkit-user-select: text;
+    position: absolute;
+    z-index: 2;
+}
+.ui-img-table .ui-img-row .ui-img-cell .ui-img-progressbar{
+	bottom: 0px;
+	z-index: 9;
+}
+.ui-img-table .ui-img-row .ui-img-cell .ui-img-progressbar::before{
+	background: #19BCFF;
+}
+.ui-img-table .ui-img-row .ui-img-cell.show-title{
+	background-color: #FFF;
+	padding-bottom: calc((100% - 12px)/4 + 15px);
+}
+.ui-img-table .ui-img-row .ui-img-cell.show-title img{
+	top: 15px;
+	height: calc(100% - 15px);
+}
+.ui-img-table .ui-img-row .ui-img-cell.open-check .check-btn{
+	display: block;
+} 
+.ui-img-table .ui-img-row .ui-img-cell.checked .check-btn{
+	/*color: #00FFFF;*/
+	color: #00CCCC;
+}
+.ui-img-table .ui-img-row .ui-img-cell .check-btn{
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	z-index: 7;
+	color: #AAAAAA;
+	/*color: #707070;*/
+	display: none;
+}
+.ui-img-table .ui-img-row .ui-img-cell.show-title .check-btn {
+	top: 18px;
+}
+.ui-img-table .ui-img-row .empty{
+    padding: 50px;
+    text-align: center;
+    vertical-align: baseline;
+    color: #929292;
+}
+.ui-img-table .ui-img-row .ui-img-cell .complete,.ui-img-table .ui-img-row .ui-img-cell .fail{
+	z-index: 8;
+    position: absolute;
+    top: 18px;
+    left: 0px;
+    font-size: 30px;
+}
+.ui-img-table .ui-img-row .ui-img-cell .complete{
+	color: #00CCCC;
+}
+.ui-img-table .ui-img-row .ui-img-cell .fail{
+    color: #FF0000;
+    -webkit-transform: scale(0.6,0.6);
+    transform: scale(0.6,0.6);
+}

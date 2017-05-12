@@ -1,0 +1,232 @@
+{
+  "index.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "pages/home.html",
+      "js/biz/app.js",
+      "js/biz/biz.js",
+      "js/immersed.js"
+    ],
+    "refer": [
+      "pages/home.html",
+      "pages/search.html",
+      "pages/guide.html",
+      "pages/upload.html",
+      "pages/setting.html",
+      "main.html",
+      "pages/login.html"
+    ]
+  },
+  "pages/search.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "fonts/mui.ttf",
+      "pages/search_sub.html",
+      "js/biz/app.js",
+      "css/biz/image.grid.css",
+      "js/biz/image.grid.js",
+      "images/11111.jpg",
+      "images/222.jpg",
+      "images/111.jpg",
+      "images/333.jpg",
+      "images/444.jpg",
+      "images/666.jpg",
+      "images/555.jpg",
+      "images/777.jpg",
+      "css/biz/img.grid.css",
+      "images/10026169_11_small.jpg",
+      "images/10026169_9_small.jpg",
+      "css/app.icon.css",
+      "js/biz/img.grid.js",
+      "fonts/iconfont.ttf",
+      "js/mui.previewimage.js",
+      "css/mui.imageviewer.css",
+      "js/mui.zoom.js",
+      "mui.zoom.css",
+      "css/mui.zoom.css",
+      "css/biz/app.css",
+      "css/biz/search.css",
+      "pages/search_list.html",
+      "js/biz/list.biz.js",
+      "js/biz/biz.js",
+      "css/mui.imageviewer.custom.css",
+      "js/mui.previewimage.custom.js"
+    ],
+    "refer": [
+      "pages/search_list.html"
+    ]
+  },
+  "main.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "pages/home.html",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/biz/app.js",
+      "css/biz/app.css",
+      "js/biz/biz.js",
+      "pages/search.html",
+      "js/immersed.js"
+    ],
+    "refer": [
+      "pages/upload.html",
+      "pages/home.html",
+      "pages/setting.html",
+      "pages/search.html",
+      "pages/search_sub.html"
+    ]
+  },
+  "pages/guide.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/biz/app.js"
+    ],
+    "refer": []
+  },
+  "pages/search_sub.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/biz/app.js"
+    ],
+    "refer": []
+  },
+  "pages/home.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "pages/upload.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "pages/upload_list.html",
+      "css/biz/upload.css",
+      "css/app.icon.css",
+      "css/mui.zoom.css",
+      "js/mui.zoom.js",
+      "css/biz/img.grid.css",
+      "js/biz/img.grid.js",
+      "js/mui.previewimage.js",
+      "js/biz/list.biz.js",
+      "css/mui.imageviewer.css",
+      "js/biz/biz.js",
+      "js/biz/app.js",
+      "css/biz/app.css",
+      "fonts/iconfont.ttf",
+      "css/mui.imageviewer.custom.css",
+      "js/mui.previewimage.custom.js"
+    ],
+    "refer": [
+      "pages/upload_list.html"
+    ]
+  },
+  "pages/search_list.html": {
+    "resources": [
+      "css/biz/search.css",
+      "css/app.icon.css",
+      "css/mui.zoom.css",
+      "js/mui.zoom.js",
+      "js/mui.min.js",
+      "css/biz/app.css",
+      "css/biz/img.grid.css",
+      "css/mui.min.css",
+      "js/biz/img.grid.js",
+      "js/mui.previewimage.js",
+      "css/mui.imageviewer.css",
+      "js/biz/app.js",
+      "fonts/iconfont.ttf",
+      "fonts/mui.ttf",
+      "css/mui.imageviewer.custom.css",
+      "js/biz/biz.js",
+      "js/biz/list.biz.js",
+      "js/mui.previewimage.custom.js"
+    ],
+    "refer": []
+  },
+  "pages/setting.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/biz/setting.css",
+      "css/biz/app.css",
+      "js/biz/app.js",
+      "js/biz/biz.js"
+    ],
+    "refer": [
+      "pages/feedback.html",
+      "pages/userDetail.html"
+    ]
+  },
+  "pages/upload_list.html": {
+    "resources": [
+      "css/biz/upload.css",
+      "js/biz/biz.js",
+      "css/mui.zoom.css",
+      "css/app.icon.css",
+      "js/biz/list.biz.js",
+      "js/biz/app.js",
+      "js/mui.zoom.js",
+      "css/biz/app.css",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/biz/img.grid.css",
+      "js/biz/img.grid.js",
+      "js/mui.previewimage.js",
+      "css/mui.imageviewer.css",
+      "css/mui.imageviewer.custom.css",
+      "js/mui.previewimage.custom.js",
+      "fonts/iconfont.ttf"
+    ],
+    "refer": []
+  },
+  "pages/login.html": {
+    "resources": [
+      "css/app.icon.css",
+      "js/biz/biz.js",
+      "js/mui.min.js",
+      "css/biz/app.css",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/biz/app.js",
+      "js/immersed.js"
+    ],
+    "refer": []
+  },
+  "pages/feedback.html": {
+    "resources": [
+      "css/biz/feedback.css",
+      "js/biz/biz.js",
+      "css/app.icon.css",
+      "js/mui.min.js",
+      "css/biz/app.css",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/biz/app.js",
+      "js/immersed.js"
+    ],
+    "refer": []
+  },
+  "pages/userDetail.html": {
+    "resources": [
+      "js/biz/biz.js",
+      "css/app.icon.css",
+      "js/mui.min.js",
+      "css/biz/app.css",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/biz/app.js",
+      "js/immersed.js"
+    ],
+    "refer": []
+  }
+}

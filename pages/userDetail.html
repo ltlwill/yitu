@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" class="feedback">
+	<head>
+		<meta charset="utf-8">
+		<title>User Detail</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" type="text/css" href="../css/mui.min.css">
+		<link rel="stylesheet" type="text/css" href="../css/biz/app.css">
+		<link rel="stylesheet" type="text/css" href="../css/app.icon.css">
+		<style type="text/css">
+			.mui-table-view span.mui-pull-right{
+				color: #999;
+			}
+		</style>
+	</head> 
+	<body>
+		<header id="header" class="mui-bar mui-bar-nav app-header">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">账号信息</h1>
+		</header>
+		<div class="mui-content">
+			<ul id="wrapper_user_info" class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<a>姓名<span class="mui-pull-right" name="nickName"></span></a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a>账号<span class="mui-pull-right" name="userName"></span></a>
+				</li> 
+				<li class="mui-table-view-cell">
+					<a>手机<span class="mui-pull-right" name="phone"></span></a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a>微信<span class="mui-pull-right" name="weixin"></span></a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a>Q&nbsp;&nbsp;Q<span class="mui-pull-right" name="qq"></span></a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a>邮箱<span class="mui-pull-right" name="email"></span></a>
+				</li>
+			</ul>
+			<form id="form_pwd" class="mui-input-group mg-t-15 none">
+				<div class="mui-input-row">
+					<label>新密码</label>
+					<input type="password" name="password" class="mui-input-password" placeholder="请输入新密码">
+				</div>
+				<div class="mui-input-row">
+					<label>确认新密码</label>
+					<input type="password" name="repassword" class="mui-input-password" placeholder="请确认新密码">
+				</div>
+			</form>
+			<div class="mui-content-padded mg-t-15">
+				<button id='btn_update_pwd' class="mui-btn mui-btn-block app-btn-primary" type="show">修改密码</button>
+			</div>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/immersed.js"></script>
+		<script src="../js/biz/app.js"></script>
+		<script src="../js/biz/biz.js"></script>
+		
+		<script type="text/javascript">
+			;(function(){
+				// MUI初始化
+				mui.init({
+					swipeBack: true  // 启用右滑关闭功能
+				});
+			})();
+			// 问题反馈管理对象
+			var UserDetailMgr = mui.extend(true,window.Biz,{
+				init: function(){
+	  				UserDetailMgr.initEles();
+	  				UserDetailMgr.initElesData();
+	  				UserDetailMgr.bindEvent();
+  				},
+  				initEles: function(){
+  					this.userInfoWrapper = mui('#wrapper_user_info')[0];
+  					this.pwdForm = mui('#form_pwd')[0];
+  					this.pwdEle = this.pwdForm.querySelector('input[name="password"]');
+  					this.repwdEle = this.pwdForm.querySelector('input[name="repassword"]');
+  					this.updatePwdBtn = mui('#btn_update_pwd')[0];
+  				},
+  				initElesData: function(){
+					var user = App.getUserInfo() || {};
+  					var eles = this.userInfoWrapper.querySelectorAll('span.mui-pull-right');
+  					mui.each(eles,function(i,o){
+  						this.innerText = user[this.getAttribute('name')] || '';
+  					});
+  				},
+  				bindEvent: function(){
+  					var me = this;
+  					// 修改密码按钮事件
+  					this.updatePwdBtn.addEventListener('tap',function(){
+  						me.doUpdatePassword(this);
+  					});
+  				},
+  				// 修改密码
+  				doUpdatePassword: function(ele){
+  					var me = this,type = ele.getAttribute('type');
+  					if(type == 'show'){ // 显示密码输入框
+  						me.pwdForm.classList.remove('none');
+  						me.updatePwdBtn.innerHTML = '确认修改';
+  						me.updatePwdBtn.setAttribute('type','confirm');
+  					}else if(type == 'confirm'){ // 确认修改  
+  						me.confirmUpdatePassword();
+  					}
+  				}, 
+  				// 确认修改密码
+  				confirmUpdatePassword: function(){
+  					var me = this,
+  						pwdRule = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,20}/,
+  						pwd = String(this.pwdEle.value).trim(),
+  						repwd = String(this.repwdEle.value).trim();
+  					if(!pwdRule.test(pwd)){
+  						mui.toast('密码应为6至20个字符的字母与数字的组合'); 
+  						return false; 
+  					}
+  					if(pwd != repwd){
+  						mui.toast('两次输入的密码不一致');
+  						return false;
+  					}
+  					var user = App.getUserInfo() || {},
+  						params = {'userId': user.userId,'pwd': pwd};
+  					mui.doPost(App.createUrl('/updateUserPwd'),params,function(result){
+  						me.pwdEle.value = '';
+  						me.repwdEle.value = '';
+  						me.pwdForm.classList.add('none'); 
+  						me.updatePwdBtn.innerHTML = '修改密码';
+  						me.updatePwdBtn.setAttribute('type','show');
+  						mui.toast('密码修改成功');
+  					},function(ex){
+  						mui.toast('密码修改失败');
+  					});
+  				},
+			});
+			// DOM初始化完成
+			mui.ready(function(){
+				UserDetailMgr.init();
+			});
+		</script>
+	</body>
+</html>

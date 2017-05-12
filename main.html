@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>main</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="css/mui.min.css">
+		<link rel="stylesheet" href="css/biz/app.css"/>
+		<style>
+			.mui-bar-nav .search-box{
+				margin-top: 2px;
+			}
+			.mui-bar-nav .search-box .mui-search{
+				/*width: -webkit-calc(100% - 42px);
+				width: calc(100% - 42px);*/
+				margin-right: 40px;
+			}
+			.mui-bar-nav .toolbox .mui-btn{
+				top: 9px;
+			    margin: 0px;
+			    position: absolute;
+			    /*right: 0px;*/
+			    padding: 4px 10px 2px;
+			    border: 1px solid transparent;
+			}
+			.mui-btn-outlined:enabled:active{
+				background-color: transparent;
+			}
+		</style>
+	</head>
+	<body>
+		<header id="header" class="mui-bar mui-bar-nav app-header">
+		    <h1 id="title" class="mui-title none">首页</h1>
+		    <div id="search_box" class="search-box toolbox">
+		    	<div id="" class="mui-input-row mui-search">
+		    		<input id="input_search" type="search" class="mui-input-clear mui-input-speech" placeholder="输入关键字搜索"/>
+		    	</div>
+		    	<button id="btn_search" type="button" class="mui-btn mui-btn-outlined app-btn-active pr">搜索</button>
+		    </div>
+		    <div id="upload_box" class="upload-box toolbox none">
+		    	<button id="span_upload_images_count" type="button" class="mui-btn mui-btn-outlined"></button>
+		    	<button id="btn_clear_upload" type="button" class="mui-btn mui-btn-outlined app-btn-active pr">清空</button>
+		    </div>
+		</header>
+		<nav class="mui-bar mui-bar-tab">
+		    <!--<a id="defaultTab" class="mui-tab-item mui-active" href="pages/home.html">
+		        <span class="mui-icon mui-icon-home"></span>
+		        <span class="mui-tab-label">首页</span>
+		    </a>-->
+		    <a id="search" class="mui-tab-item mui-active" href="pages/search.html">
+		        <span class="mui-icon mui-icon-search"></span>
+		        <span class="mui-tab-label">查询</span>
+		    </a>
+		    <a id="upload" class="mui-tab-item" href="pages/upload.html">
+		        <span class="mui-icon mui-icon-upload"></span>
+		        <span class="mui-tab-label">上传</span>
+		    </a>
+		    <a class="mui-tab-item" href="pages/setting.html">
+		        <span class="mui-icon mui-icon-gear"></span>
+		        <span class="mui-tab-label">设置</span>
+		    </a>
+		</nav>
+		<div class="mui-content"></div>
+		
+		<script src="js/mui.min.js"></script>
+		<script src="js/immersed.js"></script>
+		<script src="js/biz/biz.js"></script>
+		<script src="js/biz/app.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			;(function(){
+				// mui初始化
+		  		mui.init();
+		  		var _back = mui.back();
+		  		// 重写返回事件
+		  		mui.back = function(){
+		  			var view = plus.webview.getLaunchWebview();
+		  			mui.fire(view,'closeApp');
+		  		};
+		  		// 遮罩层
+		  		var mask = mui.createMask();
+		  		// 子页面
+		  		var subPages = [
+//		  			App.webviews.home.url,
+					App.webviews.search.url,
+					App.webviews.upload.url,
+					App.webviews.setting.url
+		  		];
+		  		// 子页面样式
+		  		var subPageStyle = {
+		  			top: '44px',
+					bottom: '51px'
+		  		};
+		  		var aniShow = {};
+		  		// 当前激活选项卡
+		  		var activeTab = subPages[0],
+		  			title = document.getElementById('title'),
+		  			searchBox = document.getElementById('search_box'),
+		  			uploadBox = document.getElementById('upload_box');
+		  		// 选项卡点击事件
+		  		mui('.mui-bar-tab').on('tap','a',function(evt){
+		  			var targetTab = this.getAttribute('href');
+		  			if(targetTab == activeTab)
+		  			{
+		  				return;
+		  			}
+		  			if(this.id == 'search'){
+						title.classList.add('none');        // 隐藏标题
+		  				searchBox.style.display = 'block';  // 显示搜索信息
+		  				uploadBox.classList.add('none');    // 隐藏上传信息
+		  			}else if(this.id == 'upload'){
+		  				title.classList.remove('none');     // 显示标题 
+		  				searchBox.style.display = 'none';   // 隐藏搜索信息
+		  				uploadBox.classList.remove('none'); // 显示上传信息
+		  				title.innerHTML = this.querySelector('.mui-tab-label').innerHTML;//修改标题
+		  			}else{
+		  				title.classList.remove('none')   // 显示标题
+		  				searchBox.style.display = 'none';// 隐藏搜索信息
+		  				uploadBox.classList.add('none'); // 隐藏上传信息
+		  				title.innerHTML = this.querySelector('.mui-tab-label').innerHTML;//修改标题
+		  			}
+		  			// 显示当前选项卡对应的页面内容
+		  			// 如果是ios 或者  目标页面不是第一次显示，则直接显示，不需要动画效果
+		  			if(mui.os.ios || aniShow[targetTab])
+		  			{
+		  				plus.webview.show(targetTab);
+		  			}else
+		  			{
+		  				var temp = {};
+		  				temp[targetTab] = 'true';
+		  				mui.extend(aniShow,temp);
+		  				// 动画显示目标选项卡对应的页面
+		  				plus.webview.show(targetTab,'fade-in',300);
+//		  				plus.webview.show(targetTab);
+		  			}
+		  			// 隐藏当前的活动页面
+		  			plus.webview.hide(activeTab);
+		  			// 切换活动的选项卡为点击的目标选项卡
+		  			activeTab = targetTab;
+		  		});
+		  		// html+环境初始化完毕
+		  		mui.plusReady(function(){
+		  			var self = plus.webview.currentWebview();
+		  			for(var i in subPages){
+						var temp = {},
+							subWebview = plus.webview.create(subPages[i],subPages[i],subPageStyle);
+						if(i > 0){
+							// 非第一个页面隐藏
+							subWebview.hide();
+						}else{
+							temp[subPages[i]] = 'true';
+							mui.extend(aniShow,temp);
+						}
+						// 添加子页面
+						self.append(subWebview);
+					}
+//		  			mui.trigger(document.getElementById('search'),'tap');
+		  		});
+		  		var clearUploadBtn = document.getElementById('btn_clear_upload'),
+		  			uploadGridCountEle = document.getElementById('span_upload_images_count'),
+		  			uploadStatusEle = document.getElementById('span_upload_progress');
+		  		initUploadToolbarStatus();// 初始化	
+		  		//自定义返回首页事件，模拟点击“首页选项卡” 
+				document.addEventListener('gohome', function() {
+					var defaultTab = document.getElementById("defaultTab");
+					//模拟首页点击
+					mui.trigger(defaultTab, 'tap');
+					//切换选项卡高亮
+					var current = document.querySelector(".mui-bar-tab>.mui-tab-item.mui-active");
+					if (defaultTab !== current) {
+						current.classList.remove('mui-active');
+						defaultTab.classList.add('mui-active');
+					}
+				});
+				// 语音输入事件
+				document.getElementById('input_search').addEventListener('recognized',function(evt){
+					this.blur();
+					var val = evt.detail.value,
+						strArr = [',。','。'],str;
+					for(var i in strArr){
+						str = strArr[i];
+						if(val && val.lastIndexOf(str) == val.length - str.length){
+							val = val.substring(0,val.lastIndexOf(str));
+						}
+					}
+					this.value = val;
+					doSearchImages();
+				});
+				// 搜索按钮事件
+				document.getElementById('btn_search').addEventListener('tap',function(evt){
+					doSearchImages(); 
+				});
+				// 清空上传数据事件
+				clearUploadBtn.addEventListener('tap',function(evt){
+					mui.confirm('确定要清空吗？','',['确定','取消'],function(e) {
+						if (e.index == 0) { 
+							mui.fire(plus.webview.getWebviewById(App.webviews.upload.id),'refreshUpload',{});
+							updateNavbarStatus('hide');       // 隐藏清空按钮
+//							updateUploadProgressMessage('','hide');// 清空和隐藏上传进度信息
+						}
+					})
+				});
+				window.addEventListener('setSearchKeyWord',function(){
+					mui.fire(plus.webview.getWebviewById(App.webviews.searchList.id),'setSearchKeyWord',{'keyWord':getSearchKeyWord()});
+				});
+				window.addEventListener('initPage',function(){
+					mui('.mui-bar-tab a.mui-tab-item').each(function(){
+						if(this.getAttribute('id') == 'search'){
+							mui.trigger(this,'tap');
+							this.classList.add('mui-active');
+						}else{
+							this.classList.remove('mui-active');
+						}
+					});
+					doSearchImages();// 触发查询图片
+					mui.fire(plus.webview.getWebviewById(App.webviews.search.id),'refreshSearchBtnsStatus',{}); // 刷新查询按钮状态
+					mui.fire(plus.webview.getWebviewById(App.webviews.setting.id),'refreshUserInfo',{});  // 刷新用户信息
+					mui.fire(plus.webview.getWebviewById(App.webviews.upload.id),'refreshUpload',{});      // 刷新上传信息
+				});
+				// 显示遮罩层
+				window.addEventListener('showMask',function(evt){
+					mask ? mask.show() : null;
+				});
+				// 关闭遮罩层
+				window.addEventListener('closeMask',function(evt){
+					mask ? mask.close() : null;
+				});
+				// 更新清空按钮的状态
+				window.addEventListener('updateNavbarStatus',function(evt){
+					updateNavbarStatus(evt.detail.type || '',evt.detail.imageCount);
+				});
+				// 更新上传进度信息
+				window.addEventListener('updateUploadProgressMessage',function(evt){
+					updateUploadProgressMessage(evt.detail.message,evt.detail.type);
+				});
+				// 重置子页面样式
+				window.addEventListener('resetSubWebviewStyle',function(evt){
+					resetSubWebviewStyle();
+				});
+				// 设置window的全局事件
+				window.updateUploadProgressMessage = updateUploadProgressMessage;
+				
+				function doSearchImages(ele){
+					mui.fire(plus.webview.getWebviewById(App.webviews.searchList.id),'doSearch',{'keyWord':getSearchKeyWord()});
+				}
+				function getSearchKeyWord(){
+					return document.getElementById('input_search').value;
+				}
+				function updateNavbarStatus(type,count){
+					var disType = type == 'show' ? 'block' : 'none';
+					// 清空按钮的隐藏或显示
+					clearUploadBtn ? clearUploadBtn.style.display = disType : null;
+					// 总图片数
+					uploadGridCountEle ? uploadGridCountEle.style.display = disType : null;
+					uploadGridCountEle ? uploadGridCountEle.innerHTML = 
+						(count ? '共' + count + '张' : '') : null;
+				}
+				function updateUploadProgressMessage(msg,type){
+					if(type == 'hide'){
+						uploadStatusEle.style.display = 'none';
+					}else{
+						uploadStatusEle.style.display = 'block';
+					}
+					uploadStatusEle.innerHTML = msg || '';
+				}
+				function initUploadToolbarStatus(){
+					clearUploadBtn ? clearUploadBtn.style.display = 'none' : '';
+					uploadStatusEle ? uploadStatusEleuploadStatusEle.style.display = 'none' : '';
+				}
+				function resetSubWebviewStyle(){
+					plus.navigator.setFullscreen(false);
+					var children = plus.webview.currentWebview().children();
+					if(children && children.length){
+						mui.each(children,function(i,wv){
+							wv.setStyle(subPageStyle);
+						});
+					}
+				}
+			})();
+		</script>
+	</body>
+</html>

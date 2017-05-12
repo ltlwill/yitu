@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Search List</title> 
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/mui.zoom.css" />
+		<link rel="stylesheet" href="../css/mui.imageviewer.custom.css">
+		<link rel="stylesheet" href="../css/biz/app.css" />
+		<link rel="stylesheet" href="../css/app.icon.css">
+		<link rel="stylesheet" href="../css/biz/img.grid.css" />
+		<link rel="stylesheet" href="../css/biz/search.css"/>
+	</head>
+	<body>
+		<!--下拉刷新容器-->
+		<div id="refreshContainer" class="mui-content mui-scroll-wrapper">
+		  	<div class="mui-scroll">
+		  		<!--数据列表-->
+			    <ul id="my_img_table" class="ui-img-table">
+	        	</ul>
+		  	</div>
+		</div>
+		<span class="table-loading mui-icon mui-icon-spinner mui-spin"></span>
+	</body>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/mui.zoom.js"></script>
+	<script src="../js/mui.previewimage.custom.js"></script>
+	<script src="../js/biz/app.js"></script>
+	<script src="../js/biz/biz.js"></script>
+	<script src="../js/biz/list.biz.js"></script>
+	<script src="../js/biz/img.grid.js"></script>
+	<script>
+		mui.init({
+			gestureConfig:{
+				longtap:true
+			},
+			pullRefresh: {
+				container: '#refreshContainer',
+				down: {
+					callback: pulldownRefresh,
+//					height: 90,
+				}
+			}
+		});
+		function pulldownRefresh(){
+//			mui.fire(SearchListMgr.getPWebview(),'addPullBottomStyle',{'type':'add'});
+			SearchListMgr.requestGridData();
+		}
+		// 图片查询管理
+		var SearchListMgr = mui.extend(true,window.ListBiz,{
+			options: {
+				pId: App.webviews.search.id,
+				pUrl: App.webviews.search.url,
+			},
+			init: function(){
+				SearchListMgr.initEles();
+				SearchListMgr.bindEvent();
+			},
+			initEles: function(){
+				this.downladCount = 0;
+				this.maxDownladNum = 999;
+				this.downloadPath = '_downloads/';
+				this.loadingIcon = mui('.table-loading');
+				this.requestParams = this.getDefaultParams();
+				if(!App.getToken()){
+					return false; // 如果没有用户登录信息，则不自动查询
+				}
+				// 显示图片数据
+				this.requestGridData(true);
+			},
+			bindEvent: function(){
+				var me = this;
+				// 分页操作事件
+				window.addEventListener('doPagination',function(evt){
+					me.doPagination(evt.detail.type);
+				});
+				// 查询操作
+				window.addEventListener('doSearch',function(evt){
+					me._keyWord = evt.detail.keyWord;
+					me.doSearch();
+				});
+				// 刷新表格
+				window.addEventListener('refreshGrid',function(evt){
+					me.requestGridData();
+				});
+				// 设置查询关键字
+				window.addEventListener('setSearchKeyWord',function(evt){
+					me._keyWord = evt.detail.keyWord;
+				});
+			},
+			showGridData: function(data){
+				var me = this,
+					settings = me.getGridSettings(),
+					options = {
+						data: data || [],
+						urlField:'smallUrl',
+						showTitle: settings.showImgName,
+						imgProps: {'data-preview-src':'url','url':'url','id':'id','name':'name'},
+						onLoaded: function(rows){
+							me.createPreview(); // 初始化图片预览
+							me.setBackToolbarStatus('close');// 每次加载完成后，都关闭工具栏
+						},
+						onOpenSelectMode:function(){
+							me.onOpenSelectMode();
+						},
+					};
+				this.table.imgGrid(options);
+			},
+			setBackToolbarStatus: function(type){
+				mui.fire(this.getPWebview(),'setBackToolbarStatus',{'type':type});
+			},
+			delSelected: function(){
+				var me = this,
+					selRows = this.table.imgGrid('getSelectedRows');
+				if(!selRows || !selRows.length){
+					mui.toast('请选择要删除的图片');
+					return false;
+				}
+				mui.confirm('确定要删除吗？','',['确定','取消'],function(e) {
+					if (e.index == 0) { // 确定删除图片
+						// 删除图片数据
+						me.doDeleteImages(selRows);
+					}
+				})
+			},
+			downloadSelected: function(){
+				var selRows = this.table.imgGrid('getSelectedRows');
+				if(!selRows || !selRows.length){
+					mui.toast('请选择要下载的图片');
+					return false;
+				}
+				if(selRows.length > this.maxDownladNum){
+					mui.toast('每次最多下载' + this.maxDownladNum + '张图片');
+					return false;
+				}
+				this.createDownloadTasksAndStartDownload(selRows);
+			},
+			requestGridData: function(showLoading){
+				var me = this,
+					url = App.createUrl('/search/doSearch'),
+					params = me.getRequestParams();
+				mui.doAjax(url,{
+					type: 'get',
+					data: params,
+					success: function(data){
+						data = data || {};
+						me.showGridData(data.rows);
+						mui.extend(me.requestParams,{'pages':data.pages});
+						mui.fire(me.getPWebview(),'updatePaginationInfo',me.requestParams);
+					},
+					error: function(xhr,type,errorThrown){
+						mui.toast('请求数据失败');
+						mui.extend(this.requestParams,this._requestParams);// 恢复到上一次的信息
+					},
+					beforeSend: function(){
+						if(showLoading){
+							me.showLoading();
+						}
+					},
+					complete: function(){
+						me.closeLoading();
+//						mui.fire(me.getPWebview(),'addPullBottomStyle',{'type':'remove'});
+						mui('#refreshContainer').pullRefresh().endPulldownToRefresh();
+					}
+				});
+			},
+			doPagination: function(type){
+				var params = {};
+				this._requestParams = mui.extend({},this.requestParams);// 缓存上一次的分页信息
+				if((type == 'first' || type == 'prev') 
+					&& this._requestParams.currPage == 1){
+					mui.toast('已经是第一页了');
+					return false;
+				}else if((type == 'next' || type == 'last') 
+					&& this._requestParams.pages == this._requestParams.currPage){
+					mui.toast('已经是最后一页了');
+					return false;
+				}
+				if(type == 'first'){
+					params.currPage = 1;
+				}else if(type == 'prev'){
+					params.currPage = this.requestParams.currPage == 1 
+						? 1 : this.requestParams.currPage - 1;
+				}else if(type == 'next'){
+					params.currPage = this.requestParams.currPage == this.requestParams.pages 
+						? this.requestParams.pages : this.requestParams.currPage + 1;
+				}else if(type == 'last'){
+					params.currPage = this.requestParams.pages;
+				}
+				// 更新分页参数
+				mui.extend(this.requestParams,params);
+				// 触发请求
+				this.requestGridData(true);
+			},
+			// 删除图片
+			doDeleteImages: function(images){
+				var me = this,
+					params = {'ids': me.getIdsStrForImages(images)},
+					waiting = null;
+				mui.doAjax(App.createUrl('/search/deleteImagesByIds'),{
+					data: params,
+					type: 'POST',
+					success: function(result){
+						// 从表格里移除元素
+						me.table.imgGrid('removeSelected');
+						mui.toast('删除成功');
+					},
+					error: function(ex){
+						mui.toast('删除失败');
+					},
+					beforeSend: function(xhr,options){
+//						waiting = plus.nativeUI.showWaiting('正在删除');
+					},
+					complete: function(xhr,status){
+//						if(waiting){
+//							waiting.close();
+//						}
+					}
+				});
+			},
+			getIdsStrForImages: function(images){
+				var ids = [];
+				for(var i=0;i<images.length;i++){
+					ids.push(images[i].id);
+				}
+				return ids.join(',');
+			},
+			doSearch: function(){
+				this.requestParams.currPage = 1; // 重置为第一页
+				this.requestGridData(true);
+			},
+			getRequestParams: function(){
+				return mui.extend(this.requestParams,
+					{'sku':this._keyWord || '','keyWord':this._keyWord 
+					|| '','pageSize': this.getGridSettings().imgNum});
+			},
+			createPreview: function(){
+				var me = this;
+				var options = {
+					'onOpen': me.onPreviewOpen,
+					'onClose': me.onPreviewClose,
+					'btns': [{'iconCls':'mui-icon mui-icon-download',handler:function(img){
+						// 单个下载 
+						var image = {'url': img.getAttribute('src'),'name': img.getAttribute('data-name')};
+						me.createDownloadTasksAndStartDownload(image);
+					}}]
+				};
+				mui.previewImage(options); 
+			},
+			getDefaultParams: function(){
+				return {'currPage':1,'pageSize':this.options.defaultGridNum,'pages':0};
+			},
+			showLoading: function(){
+				this.loadingIcon[0].style.display = 'block';
+			},
+			closeLoading: function(){
+				this.loadingIcon[0].style.display = 'none';
+			},
+			onOpenSelectMode: function(){
+				this.setBackToolbarStatus('show');
+			},
+			getGridSettings: function(){
+				var settings = App.getImageGridSettigns();
+				settings.showImgName = (typeof settings.showImgName == 'undefined') ? true : settings.showImgName; // 默认显示
+				settings.imgNum = settings.imgNum || this.options.defaultGridNum;
+				return settings;
+			},
+			createDownloadTasksAndStartDownload: function(images){
+				images = images || [];
+				if(images.constructor != Array){
+					images = [images];
+				}
+				mui.toast('开始下载...');
+				for(var i=0;i<images.length;i++){
+					this.createDownloadTaskAndStartDownload(images[i]);
+				}
+			},
+			createDownloadTaskAndStartDownload: function(image){
+				var task = plus.downloader.createDownload(encodeURI(image.url),
+					{'filename': this.downloadPath + image.name});
+				if(!task){
+					mui.toast('下载' + image.name + '失败');
+					return false;
+				}
+				task.addEventListener('statechanged',this.onDownloadStatechanged,false);
+				// 开始下载
+				task.start();
+			},
+			onDownloadStatechanged: function(download,status){
+//				console.log('正在下载...,state=' + download.state +';status=' + status);
+				var me = SearchListMgr;
+				if(download.state == 2){
+//					console.log('下载中,state=2');
+					me.downladCount ++;
+				}else if(download.state == 4 && status == 200){
+//					console.log('下载完成,downladCount=' + me.downladCount + ';file path=' + download.filename+';url=' + download.url);
+					// 保存到相册
+					plus.gallery.save(download.filename,function(){
+						console.log('保存到相册成功,path=' + download.filename);
+						afterDownload();
+					},function(error){
+						afterDownload();
+						console.log('保存到相册失败,path=' + download.filename +',error code=' + error.code+';message='+error.message);
+					});
+					
+					function afterDownload(){
+						plus.io.resolveLocalFileSystemURL(download.filename,function(entry){
+							if(entry){
+								entry.remove(); // 删除文件
+							}
+						},function(error){
+						});
+						me.downladCount --;
+						if(me.downladCount <= 0){
+							plus.downloader.clear(4); // 清楚所有已完成的下载任务
+							mui.toast('下载完成,已保存到相册'); 
+						}
+					}
+				}else if(download.state == 4 && status != 200){
+					var name = download.filename || '';
+					name = name.substring(name.lastIndexOf('\\') + 1);
+					mui.toast('下载' + name + '失败');
+				}
+			}, 
+		});
+		// h5+环境初始化完成
+		mui.plusReady(function(){
+			SearchListMgr.ready();
+		});
+	</script>
+</html>
